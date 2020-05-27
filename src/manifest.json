@@ -1,6 +1,4 @@
 {
-  "compatibleVersion": 3,
-  "bundleVersion": 1,
   "commands": [
     {
       "name": "my-command",
@@ -15,9 +13,16 @@
     }
   ],
   "menu": {
-    "title": "sketch-assets",
+    "title": "Assets",
     "items": [
       "sketch-assets.my-command-identifier"
     ]
-  }
+  },
+  "identifier" : "com.oodesign.sketch-assets",
+  "name" : "Assets",
+	"icon" : "icon.png",
+  "description": "Generate handoff assets easily.",
+  "author": "oodesign",
+  "homepage": "http://bit.ly/mergesymbolsinsketch",
+  "compatibleVersion": 50
 }
