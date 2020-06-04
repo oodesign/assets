@@ -1,11 +1,24 @@
 {
   "commands": [
     {
-      "name": "my-command",
-      "identifier": "sketch-assets.my-command-identifier",
-      "script": "./my-command.js",
+      "script": "Main.js",
+      "name": "Generate handoff artboard",
       "handlers": {
-        "run": "onRun",
+        "run": "GenerateHandoffArtboard",
+        "actions": {
+          "Shutdown": "onShutdown"
+        }
+      },
+      "identifier": "generatehandoffartboard",
+      "shortcut": "command ctrl shift option a",
+      "icon": "icon-sr.png"
+    },
+    {
+      "script": "Main.js",
+      "name": "Settings",
+      "identifier": "editsettings",
+      "handlers": {
+        "run": "EditSettings",
         "actions": {
           "Shutdown": "onShutdown"
         }
@@ -15,7 +28,7 @@
   "menu": {
     "title": "Assets",
     "items": [
-      "sketch-assets.my-command-identifier"
+      "generatehandoffartboard"
     ]
   },
   "identifier" : "com.oodesign.sketch-assets",
@@ -23,6 +36,6 @@
 	"icon" : "icon.png",
   "description": "Generate handoff assets easily.",
   "author": "oodesign",
-  "homepage": "http://bit.ly/mergesymbolsinsketch",
+  "homepage": "http://gum.co/assets",
   "compatibleVersion": 50
 }
