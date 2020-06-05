@@ -786,6 +786,7 @@ function getSymbolOverrides(context, symbolMaster) {
       instance;
 
     while (instance = instanceLoop.nextObject()) {
+      clog("Found symboloverride instance:"+instance.name());
       var overrides = instance.overrides();
       FindOverrideSymbolID(instance, overrides, symbolOverrides, symbolMaster, 0);
     }
