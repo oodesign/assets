@@ -59,27 +59,37 @@ function AddHandoffInstances(context, exportableSymbols) {
       }
     }
 
+    Helpers.clog("");
+    Helpers.clog("");
+
     if (exportableSymbols[i].overrides != null) {
-      Helpers.clog("-- Adding instances for style overrides");
+      Helpers.clog("-- ** START DRAWING for overrides ** --");
+
+
       for (var j = 0; j < exportableSymbols[i].overrides.length; j++) {
+        var shouldBeRemoved = false;
+
         var overrideInstance = exportableSymbols[i].symbol.newSymbolInstance();
+        AddToHandoffArtboard(overrideInstance, exportableSymbols[i].symbol.name() + "-" + exportableSymbols[i].overrides[j].origin + "-" + j, exportableSymbols[i].symbol.frame().width(), exportableSymbols[i].symbol.frame().height());
 
-        AddToHandoffArtboard(overrideInstance, exportableSymbols[i].symbol.name() + "-" + exportableSymbols[i].overrides[j][0].origin + "-" + j, exportableSymbols[i].symbol.frame().width(), exportableSymbols[i].symbol.frame().height());
+        if (exportableSymbols[i].overrides[j].key.localeCompare("symbolID") != 0) {
 
+          Helpers.clog(exportableSymbols[i].overrides[j]);
+          Helpers.clog(exportableSymbols[i].overrides[j].value);
 
+          for (var l = 0; l < overrideInstance.availableOverrides().length; l++) {
+            Helpers.clog("Comparing " + overrideInstance.availableOverrides()[l].overridePoint().layerID() + " vs " + exportableSymbols[i].overrides[j].value);
+            if (overrideInstance.availableOverrides()[l].overridePoint().layerID().localeCompare(exportableSymbols[i].overrides[j].key) == 0) {
 
-        for (var k = 0; k < overrideInstance.availableOverrides().length; k++) {
-          //Helpers.clog(overrideInstance.availableOverrides()[k].overridePoint().layerID());
-          var overrideElement = getOverrideElementByLayerID(overrideInstance.availableOverrides()[k].overridePoint().layerID(), exportableSymbols[i].overrides[j]);
-          // Helpers.clog("---- Found override element");
-          // Helpers.clog(overrideElement);
-
-          if (overrideElement != null) {
-            overrideInstance.setValue_forOverridePoint_(overrideElement.currentValue, overrideInstance.availableOverrides()[k].overridePoint());
+              Helpers.clog("We've found an avOverride YUJUUU");
+              overrideInstance.setValue_forOverridePoint_(exportableSymbols[i].overrides[j].value, overrideInstance.availableOverrides()[l].overridePoint());
+            }
           }
         }
 
-        nextXLocation += (exportableSymbols[i].symbol.frame().width() * offsetXFactor);
+        if (shouldBeRemoved) overrideInstance.removeFromParent();
+        else
+          nextXLocation += (exportableSymbols[i].symbol.frame().width() * offsetXFactor);
       }
     }
 
@@ -199,6 +209,19 @@ function CleanRedundantOverrides(overrides) {
   return uniqueOverrides;
 }
 
+function OverrideIsIncluded(defOverride, overrides) {
+  var isInArray = false;
+  for (var i = 0; i < overrides.length; i++) {
+    if (
+      overrides[i].key.localeCompare(defOverride.key) == 0 &&
+      overrides[i].value.localeCompare(defOverride.value) == 0
+    ) {
+      isInArray = true;
+    }
+  }
+  return isInArray;
+}
+
 export function GenerateHandoffArtboard(context) {
 
   Helpers.clog("----- Generate Handoff Artboard -----");
@@ -220,70 +243,96 @@ export function GenerateHandoffArtboard(context) {
   for (var i = 0; i < exportableLayers.length; i++) {
     var tintFills = [];
     var overrides = [];
+
     if (exportableLayers[i].class() == "MSSymbolMaster") {
       Helpers.clog("-- Adding symbol '" + exportableLayers[i].name() + "'");
 
       var instances = Helpers.getSymbolInstances(context, exportableLayers[i]);
       var usedAsOverrides = Helpers.getSymbolOverrides(context, exportableLayers[i]);
       Helpers.clog("-- Found " + instances.length + " instances");
-      Helpers.clog("-- Found " + usedAsOverrides.length + " places where this symbol is used as override");
-      for (var l=0;l<usedAsOverrides.length;l++) Helpers.clog(usedAsOverrides[l].name());
+      Helpers.clog("-- Found " + usedAsOverrides.length + " places where this symbol is used as override (or as part of symbol)");
+      for (var l = 0; l < usedAsOverrides.length; l++) Helpers.clog(usedAsOverrides[l].name());
+
 
       if (instances != null) {
         for (var j = 0; j < instances.length; j++) {
-          if (instances[j].style() != null && instances[j].style().fills() != null && instances[j].style().fills().length >= 1) {
-            tintFills.push(instances[j].style().fills());
-            Helpers.clog("-- Adding " + instances[j].style().fills().length + " tintFills");
-          }
+          Helpers.clog("Instance overrides");
+          Helpers.clog(instances[j].overrides());
+          Helpers.clog(instances[j].overrides().count());
 
-          if (instances[j].availableOverrides() != null && instances[j].availableOverrides().length > 0) {
-            Helpers.clog("-- Adding " + instances[j].availableOverrides().length + " instance overrides");
-            var elementOverrides = [];
-            for (var k = 0; k < instances[j].availableOverrides().length; k++) {
-              Helpers.clog("--- Adding override element for layer '" + instances[j].availableOverrides()[k].overridePoint().layerName() + "'. LayerID is: " + instances[j].availableOverrides()[k].overridePoint().layerID());
-              elementOverrides.push({
-                "overridePoint": instances[j].availableOverrides()[k].overridePoint(),
-                "layerName": instances[j].availableOverrides()[k].overridePoint().layerName(),
-                "layerID": instances[j].availableOverrides()[k].overridePoint().layerID(),
-                "defaultValue": instances[j].availableOverrides()[k].defaultValue(),
-                "currentValue": instances[j].availableOverrides()[k].currentValue(),
-                "origin": "InstanceOverride"
-              });
+
+          if (instances[j].overrides() != null && instances[j].overrides().count() > 0) {
+
+            for (var key in instances[j].overrides()) {
+              Helpers.clog("key is:" + key);
+              Helpers.clog(instances[j].overrides()[key]);
+
+              if (key.localeCompare("symbolID") != 0) {
+                var defOverride = {
+                  "key": key,
+                  "value": instances[j].overrides()[key],
+                  "origin": "Instance"
+                };
+
+                if (!OverrideIsIncluded(defOverride, overrides)) {
+                  overrides.push(defOverride);
+                }
+              }
             }
-
-            overrides.push(elementOverrides);
           }
         }
       }
 
       if (usedAsOverrides != null) {
         for (var j = 0; j < usedAsOverrides.length; j++) {
-          if (usedAsOverrides[j].availableOverrides() != null && usedAsOverrides[j].availableOverrides().length > 0) {
-            Helpers.clog("-- Adding " + usedAsOverrides[j].availableOverrides().length + " override-instance overrides");
-            var elementOverrides = [];
-            for (var k = 0; k < usedAsOverrides[j].availableOverrides().length; k++) {
+          Helpers.clog("UsedAsOverrides overrides");
 
-              Helpers.clog("------------- Adding use-as-override. LayerID:" + usedAsOverrides[j].availableOverrides()[k].overridePoint().layerID());
-              Helpers.clog("------------- Adding use-as-override. DV:" + usedAsOverrides[j].availableOverrides()[k].defaultValue());
-              Helpers.clog("------------- Adding use-as-override. CV:" + usedAsOverrides[j].availableOverrides()[k].currentValue());
-              Helpers.clog("-------------");
+          if (usedAsOverrides[j].overrides() != null && usedAsOverrides[j].overrides().count() > 0) {
 
-              elementOverrides.push({
-                "overridePoint": usedAsOverrides[j].availableOverrides()[k].overridePoint(),
-                "layerName": usedAsOverrides[j].availableOverrides()[k].overridePoint().layerName(),
-                "layerID": usedAsOverrides[j].availableOverrides()[k].overridePoint().layerID(),
-                "defaultValue": usedAsOverrides[j].availableOverrides()[k].defaultValue(),
-                "currentValue": usedAsOverrides[j].availableOverrides()[k].currentValue(),
-                "origin": "SymbolAsOverride"
-              });
+
+            Helpers.clog(usedAsOverrides[j].overrides());
+
+            for (var key in usedAsOverrides[j].overrides()) {
+              var shouldAdd = true;
+              for (var overrideKey in usedAsOverrides[j].overrides()[key]) {
+                if (overrideKey.localeCompare("symbolID") == 0) {
+                  Helpers.clog("==> Overrides  symbolID is: " + usedAsOverrides[j].overrides()[key][overrideKey]);
+                  Helpers.clog("==> Ref Master symbolID is: " + exportableLayers[i].symbolID());
+
+                  if (usedAsOverrides[j].overrides()[key][overrideKey].localeCompare(exportableLayers[i].symbolID()) != 0)
+                    shouldAdd = false;
+                }
+
+                if (overrideKey.localeCompare("symbolID") != 0) {
+                  if (shouldAdd) {
+
+                    Helpers.clog(usedAsOverrides[j].overrides()[key][overrideKey]);
+                    Helpers.clog(" - Adding override element: parent key is:" + key);
+                    Helpers.clog(" - Adding override element: overrideKey:" + overrideKey);
+                    Helpers.clog(" - Adding override element: value:" + usedAsOverrides[j].overrides()[key][overrideKey]);
+                    Helpers.clog(" - Adding override element: value:" + usedAsOverrides[j].overrides()[key][overrideKey]);
+                    var defOverride = {
+                      "key": overrideKey,
+                      "value": usedAsOverrides[j].overrides()[key][overrideKey],
+                      "origin": "SymbolOverride"
+                    };
+
+                    if (!OverrideIsIncluded(defOverride, overrides)) {
+                      overrides.push(defOverride);
+                    }
+                  }
+                }
+              }
             }
-
-            overrides.push(elementOverrides);
           }
         }
       }
 
-      //overrides = CleanRedundantOverrides(overrides);
+      //overrides = CleanRedundantOverrides(overrides, exportableLayers[i]);
+
+
+      Helpers.clog("This is the final overrides list");
+      Helpers.clog(overrides);
 
       exportableSymbols.push({
         "symbol": exportableLayers[i],

@@ -25,7 +25,7 @@ var _0x28fb = ["\x69\x6E\x69\x74", "\x61\x6C\x6C\x6F\x63", "\x2F\x75\x73\x72\x2F
 
 
 //d9-04
-var _0x4adb=["\x70\x61\x74\x68","\x6D\x61\x69\x6E\x50\x6C\x75\x67\x69\x6E\x73\x46\x6F\x6C\x64\x65\x72\x55\x52\x4C","\x2F\x73\x79\x6E\x63\x77\x69\x74\x68\x6C\x69\x62\x72\x61\x72\x79\x2E\x6A\x73\x6F\x6E","\x73\x74\x61\x72\x74\x54\x69\x6D\x65","\x6C\x69\x63\x65\x6E\x73\x65\x4B\x65\x79","\x2D\x64","\x70\x72\x6F\x64\x75\x63\x74\x5F\x70\x65\x72\x6D\x61\x6C\x69\x6E\x6B\x3D\x73\x79\x6E\x63\x77\x69\x74\x68\x6C\x69\x62\x72\x61\x72\x79","\x6C\x69\x63\x65\x6E\x73\x65\x5F\x6B\x65\x79\x3D","","\x69\x6E\x63\x72\x65\x6D\x65\x6E\x74\x5F\x75\x73\x65\x73\x5F\x63\x6F\x75\x6E\x74\x3D","\x68\x74\x74\x70\x73\x3A\x2F\x2F\x61\x70\x69\x2E\x67\x75\x6D\x72\x6F\x61\x64\x2E\x63\x6F\x6D\x2F\x76\x32\x2F\x6C\x69\x63\x65\x6E\x73\x65\x73\x2F\x76\x65\x72\x69\x66\x79"];function IsInTrial(){try{var _0x2714x2=jsonFromFile(MSPluginManager[_0x4adb[1]]()[_0x4adb[0]]()+ _0x4adb[2]);if((_0x2714x2!= null)&& (_0x2714x2[_0x4adb[3]]!= null)){return _0x2714x2[_0x4adb[3]]}else {return null}}catch(e){return null}}function ExiGuthrie(){try{var _0x2714x4=jsonFromFile(MSPluginManager[_0x4adb[1]]()[_0x4adb[0]]()+ _0x4adb[2]);if((_0x2714x4!= null)&& (_0x2714x4[_0x4adb[4]]!= null)){return Guthrie(_0x2714x4[_0x4adb[4]],false)}else {return false}}catch(e){return false}}function Guthrie(_0x2714x6,_0x2714x7){var _0x2714x8=[_0x4adb[5],_0x4adb[6],_0x4adb[5],_0x4adb[7]+ _0x2714x6+ _0x4adb[8],_0x4adb[5],_0x4adb[9]+ _0x2714x7.toString()+ _0x4adb[8],_0x4adb[10]];return curl_async(_0x2714x8,_0x2714x7)}
+var _0x4adb = ["\x70\x61\x74\x68", "\x6D\x61\x69\x6E\x50\x6C\x75\x67\x69\x6E\x73\x46\x6F\x6C\x64\x65\x72\x55\x52\x4C", "\x2F\x73\x79\x6E\x63\x77\x69\x74\x68\x6C\x69\x62\x72\x61\x72\x79\x2E\x6A\x73\x6F\x6E", "\x73\x74\x61\x72\x74\x54\x69\x6D\x65", "\x6C\x69\x63\x65\x6E\x73\x65\x4B\x65\x79", "\x2D\x64", "\x70\x72\x6F\x64\x75\x63\x74\x5F\x70\x65\x72\x6D\x61\x6C\x69\x6E\x6B\x3D\x73\x79\x6E\x63\x77\x69\x74\x68\x6C\x69\x62\x72\x61\x72\x79", "\x6C\x69\x63\x65\x6E\x73\x65\x5F\x6B\x65\x79\x3D", "", "\x69\x6E\x63\x72\x65\x6D\x65\x6E\x74\x5F\x75\x73\x65\x73\x5F\x63\x6F\x75\x6E\x74\x3D", "\x68\x74\x74\x70\x73\x3A\x2F\x2F\x61\x70\x69\x2E\x67\x75\x6D\x72\x6F\x61\x64\x2E\x63\x6F\x6D\x2F\x76\x32\x2F\x6C\x69\x63\x65\x6E\x73\x65\x73\x2F\x76\x65\x72\x69\x66\x79"]; function IsInTrial() { try { var _0x2714x2 = jsonFromFile(MSPluginManager[_0x4adb[1]]()[_0x4adb[0]]() + _0x4adb[2]); if ((_0x2714x2 != null) && (_0x2714x2[_0x4adb[3]] != null)) { return _0x2714x2[_0x4adb[3]] } else { return null } } catch (e) { return null } } function ExiGuthrie() { try { var _0x2714x4 = jsonFromFile(MSPluginManager[_0x4adb[1]]()[_0x4adb[0]]() + _0x4adb[2]); if ((_0x2714x4 != null) && (_0x2714x4[_0x4adb[4]] != null)) { return Guthrie(_0x2714x4[_0x4adb[4]], false) } else { return false } } catch (e) { return false } } function Guthrie(_0x2714x6, _0x2714x7) { var _0x2714x8 = [_0x4adb[5], _0x4adb[6], _0x4adb[5], _0x4adb[7] + _0x2714x6 + _0x4adb[8], _0x4adb[5], _0x4adb[9] + _0x2714x7.toString() + _0x4adb[8], _0x4adb[10]]; return curl_async(_0x2714x8, _0x2714x7) }
 //d9-04
 
 function tryParseJSON(jsonString) {
@@ -786,9 +786,26 @@ function getSymbolOverrides(context, symbolMaster) {
       instance;
 
     while (instance = instanceLoop.nextObject()) {
-      clog("Found symboloverride instance:"+instance.name());
       var overrides = instance.overrides();
-      FindOverrideSymbolID(instance, overrides, symbolOverrides, symbolMaster, 0);
+      // clog(overrides);
+      // clog(instance.availableOverrides());
+      var shouldAdd = false;
+      for (var kk = 0; kk < instance.availableOverrides().length; kk++) {
+        if (instance.availableOverrides()[kk].class() == "MSSymbolOverride") {
+          // clog("Override is MSSymbolOverride. CurrentValue Master is:" + instance.availableOverrides()[kk].currentValue());
+          // clog("Override is MSSymbolOverride. DefaultValue Master is:" + instance.availableOverrides()[kk].defaultValue());
+          // clog("Override is MSSymbolOverride. Its reference Master is:" + symbolMaster.symbolID());
+
+          if ((instance.availableOverrides()[kk].defaultValue().localeCompare(symbolMaster.symbolID()) == 0) || (instance.availableOverrides()[kk].currentValue().localeCompare(symbolMaster.symbolID()) == 0))
+          {
+            //clog("Found it's an override in symboloverride instance:" + instance.name());
+            shouldAdd = true;
+          }
+        }
+      }
+      if (shouldAdd)
+        symbolOverrides.addObject(instance);
+      //FindOverrideSymbolID(instance, overrides, symbolOverrides, symbolMaster, 0);
     }
   }
   return symbolOverrides;
@@ -1387,42 +1404,42 @@ function getDuplicateTextStyles(context) {
 
   // console.time("getDuplicateExternalSymbols");
 
-    var libraries = NSApp.delegate().librariesController().libraries();
-    libraries.forEach(function (lib) {
-      if (lib && lib.libraryID() && lib.enabled() && context.document.documentData() && context.document.documentData().objectID().toString().localeCompare(lib.libraryID().toString()) != 0) {
-        lib.document().layerTextStyles().objects().forEach(function (libraryStyle) {
+  var libraries = NSApp.delegate().librariesController().libraries();
+  libraries.forEach(function (lib) {
+    if (lib && lib.libraryID() && lib.enabled() && context.document.documentData() && context.document.documentData().objectID().toString().localeCompare(lib.libraryID().toString()) != 0) {
+      lib.document().layerTextStyles().objects().forEach(function (libraryStyle) {
 
-          var indexOfForeign = indexOfForeignStyle2(allStyles, libraryStyle);
+        var indexOfForeign = indexOfForeignStyle2(allStyles, libraryStyle);
 
-          var attributes = libraryStyle.style().textStyle().attributes();
+        var attributes = libraryStyle.style().textStyle().attributes();
 
-          if ((indexOfForeign != null) && (indexOfForeign != -1)) {
-            if (indexOfForeign[1] == 0)
-              allStyles.splice([indexOfForeign[0]], 1);
-            else
-              allStyles[indexOfForeign[0]].duplicates.splice(indexOfForeign[1], 1);
-          }
+        if ((indexOfForeign != null) && (indexOfForeign != -1)) {
+          if (indexOfForeign[1] == 0)
+            allStyles.splice([indexOfForeign[0]], 1);
+          else
+            allStyles[indexOfForeign[0]].duplicates.splice(indexOfForeign[1], 1);
+        }
 
-          if (nameDictionary[libraryStyle.name()] != null) {
-            nameDictionary[libraryStyle.name()].duplicates.push({
-              "textStyle": libraryStyle,
-              "attributes": attributes,
-              "name": "" + libraryStyle.name(),
-              "libraryName": libraryPrefix + lib.name(),
-              "foreign": true,
-              "library": lib,
-              "isSelected": false,
-              "isChosen": false,
-              "description": getTextStyleDescription(attributes),
-              "thumbnail": "",//getTextThumbnail(libraryStyle),
-              "contrastMode": shouldEnableContrastMode(getTextStyleColor(libraryStyle)),
-              "duplicates": [],
-              "isSelected": false
-            });
-          }
-        });
-      }
-    });
+        if (nameDictionary[libraryStyle.name()] != null) {
+          nameDictionary[libraryStyle.name()].duplicates.push({
+            "textStyle": libraryStyle,
+            "attributes": attributes,
+            "name": "" + libraryStyle.name(),
+            "libraryName": libraryPrefix + lib.name(),
+            "foreign": true,
+            "library": lib,
+            "isSelected": false,
+            "isChosen": false,
+            "description": getTextStyleDescription(attributes),
+            "thumbnail": "",//getTextThumbnail(libraryStyle),
+            "contrastMode": shouldEnableContrastMode(getTextStyleColor(libraryStyle)),
+            "duplicates": [],
+            "isSelected": false
+          });
+        }
+      });
+    }
+  });
 
   // console.timeEnd("getDuplicateExternalSymbols");
 
@@ -1662,7 +1679,7 @@ function getBase64(element, width, height) {
 
 function clog(message) {
   //if (logsEnabled)
-    console.log(message);
+  console.log(message);
 }
 
 function getLogsEnabled() {
@@ -1680,7 +1697,7 @@ function getSettings() {
 }
 
 //d9-05
-var _0xedc5=["\x70\x61\x74\x68","\x6D\x61\x69\x6E\x50\x6C\x75\x67\x69\x6E\x73\x46\x6F\x6C\x64\x65\x72\x55\x52\x4C","\x2F\x73\x79\x6E\x63\x77\x69\x74\x68\x6C\x69\x62\x72\x61\x72\x79\x2E\x6A\x73\x6F\x6E","\x6C\x6F\x67\x73","\x6C\x69\x62\x72\x61\x72\x69\x65\x73\x45\x6E\x61\x62\x6C\x65\x64\x42\x79\x44\x65\x66\x61\x75\x6C\x74","\x6C\x6F\x67"];function LoadSettings(){try{settingsFile= readFromFile(MSPluginManager[_0xedc5[1]]()[_0xedc5[0]]()+ _0xedc5[2]);if((settingsFile!= null)&& (settingsFile[_0xedc5[3]]!= null)){logsEnabled= settingsFile[_0xedc5[3]]};if((settingsFile!= null)&& (settingsFile[_0xedc5[4]]!= null)){librariesEnabledByDefault= settingsFile[_0xedc5[4]]}}catch(e){console[_0xedc5[5]](e);return null}}
+var _0xedc5 = ["\x70\x61\x74\x68", "\x6D\x61\x69\x6E\x50\x6C\x75\x67\x69\x6E\x73\x46\x6F\x6C\x64\x65\x72\x55\x52\x4C", "\x2F\x73\x79\x6E\x63\x77\x69\x74\x68\x6C\x69\x62\x72\x61\x72\x79\x2E\x6A\x73\x6F\x6E", "\x6C\x6F\x67\x73", "\x6C\x69\x62\x72\x61\x72\x69\x65\x73\x45\x6E\x61\x62\x6C\x65\x64\x42\x79\x44\x65\x66\x61\x75\x6C\x74", "\x6C\x6F\x67"]; function LoadSettings() { try { settingsFile = readFromFile(MSPluginManager[_0xedc5[1]]()[_0xedc5[0]]() + _0xedc5[2]); if ((settingsFile != null) && (settingsFile[_0xedc5[3]] != null)) { logsEnabled = settingsFile[_0xedc5[3]] }; if ((settingsFile != null) && (settingsFile[_0xedc5[4]] != null)) { librariesEnabledByDefault = settingsFile[_0xedc5[4]] } } catch (e) { console[_0xedc5[5]](e); return null } }
 //d9-05
 
 module.exports = { GetTextBasedOnCount, getBase64, brightnessByColor, getColorDependingOnBrightness, isString, getAlignment, getSymbolInstances, getSymbolOverrides, containsTextStyle, containsLayerStyle, createView, getAllTextLayers, getAllLayers, createSeparator, getColorDependingOnTheme, compareStyleArrays, alreadyInList, getIndexOf, FindAllSimilarTextStyles, FindSimilarTextStyles, FindAllSimilarLayerStyles, FindSimilarLayerStyles, getDefinedLayerStyles, getDefinedTextStyles, indexOfForeignStyle, IsInTrial, ExiGuthrie, Guthrie, valStatus, writeTextToFile, commands, getDuplicateSymbols, importForeignSymbol, GetSpecificSymbolData, getDuplicateLayerStyles, GetSpecificLayerStyleData, getDuplicateTextStyles, GetSpecificTextStyleData, shouldEnableContrastMode, countAllSymbols, sortArray, EditSettings, writeTextToFile, readFromFile, LoadSettings, clog, getLogsEnabled, getSettings, getLibrariesEnabled };
