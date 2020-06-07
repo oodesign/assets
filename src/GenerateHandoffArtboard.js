@@ -59,37 +59,25 @@ function AddHandoffInstances(context, exportableSymbols) {
       }
     }
 
-    Helpers.clog("");
-    Helpers.clog("");
 
     if (exportableSymbols[i].overrides != null) {
-      Helpers.clog("-- ** START DRAWING for overrides ** --");
-
+      Helpers.clog("-- Adding instances for overrides");
 
       for (var j = 0; j < exportableSymbols[i].overrides.length; j++) {
-        var shouldBeRemoved = false;
 
         var overrideInstance = exportableSymbols[i].symbol.newSymbolInstance();
         AddToHandoffArtboard(overrideInstance, exportableSymbols[i].symbol.name() + "-" + exportableSymbols[i].overrides[j].origin + "-" + j, exportableSymbols[i].symbol.frame().width(), exportableSymbols[i].symbol.frame().height());
 
         if (exportableSymbols[i].overrides[j].key.localeCompare("symbolID") != 0) {
 
-          Helpers.clog(exportableSymbols[i].overrides[j]);
-          Helpers.clog(exportableSymbols[i].overrides[j].value);
-
           for (var l = 0; l < overrideInstance.availableOverrides().length; l++) {
-            Helpers.clog("Comparing " + overrideInstance.availableOverrides()[l].overridePoint().layerID() + " vs " + exportableSymbols[i].overrides[j].value);
             if (overrideInstance.availableOverrides()[l].overridePoint().layerID().localeCompare(exportableSymbols[i].overrides[j].key) == 0) {
-
-              Helpers.clog("We've found an avOverride YUJUUU");
+              Helpers.clog("Setting related override to instance");
               overrideInstance.setValue_forOverridePoint_(exportableSymbols[i].overrides[j].value, overrideInstance.availableOverrides()[l].overridePoint());
             }
           }
         }
-
-        if (shouldBeRemoved) overrideInstance.removeFromParent();
-        else
-          nextXLocation += (exportableSymbols[i].symbol.frame().width() * offsetXFactor);
+        nextXLocation += (exportableSymbols[i].symbol.frame().width() * offsetXFactor);
       }
     }
 
@@ -156,59 +144,6 @@ function CompareOverrides(overrideA, overrideB) {
   return (equalOv == overrideA.length);
 }
 
-function CleanRedundantOverrides(overrides) {
-  Helpers.clog("Cleaning redundant overrides");
-  var uniqueOverrides = [];
-  var differentThanOrigin = [];
-  var redundantObjects = [];
-
-  //Remove overrides that are not overrides, because have default value
-  var sameAsOrigin = [];
-  for (var i = 0; i < overrides.length; i++) {
-    var equalOv = 0;
-    for (var j = 0; j < overrides[i].length; j++) {
-      if (overrides[i][j].defaultValue.localeCompare(overrides[i][j].currentValue) == 0)
-        equalOv++;
-    }
-
-    if (equalOv == overrides[i].length)
-      sameAsOrigin.push(i);
-  }
-
-  for (var i = 0; i < overrides.length; i++) {
-    if (sameAsOrigin.indexOf(i) < 0) {
-      differentThanOrigin.push(overrides[i]);
-    }
-  }
-
-  Helpers.clog("-- We found " + sameAsOrigin.length + " overrides that were equal to original:" + sameAsOrigin);
-
-  //Remove redundant overrides
-  for (var i = 0; i < differentThanOrigin.length; i++) {
-    if ((i + 1) < differentThanOrigin.length) {
-      for (var j = (i + 1); j < differentThanOrigin.length; j++) {
-        if (redundantObjects.indexOf(j) < 0) {
-          var areEquals = CompareOverrides(differentThanOrigin[i], differentThanOrigin[j]);
-          if (areEquals)
-            redundantObjects.push(j);
-        }
-      }
-    }
-  }
-
-  Helpers.clog("-- We found " + redundantObjects.length + " overrides that were redundant:" + redundantObjects);
-
-  for (var i = 0; i < differentThanOrigin.length; i++) {
-    if (redundantObjects.indexOf(i) < 0) {
-      uniqueOverrides.push(differentThanOrigin[i]);
-    }
-  }
-
-  Helpers.clog("There were " + overrides.length + " overrides, but only " + uniqueOverrides.length + " unique ones.");
-
-  return uniqueOverrides;
-}
-
 function OverrideIsIncluded(defOverride, overrides) {
   var isInArray = false;
   for (var i = 0; i < overrides.length; i++) {
@@ -223,6 +158,8 @@ function OverrideIsIncluded(defOverride, overrides) {
 }
 
 export function GenerateHandoffArtboard(context) {
+
+  var counterTotalAssets = 0;
 
   Helpers.clog("----- Generate Handoff Artboard -----");
 
@@ -251,27 +188,30 @@ export function GenerateHandoffArtboard(context) {
       var usedAsOverrides = Helpers.getSymbolOverrides(context, exportableLayers[i]);
       Helpers.clog("-- Found " + instances.length + " instances");
       Helpers.clog("-- Found " + usedAsOverrides.length + " places where this symbol is used as override (or as part of symbol)");
-      for (var l = 0; l < usedAsOverrides.length; l++) Helpers.clog(usedAsOverrides[l].name());
 
 
       if (instances != null) {
+
+        Helpers.clog("-- Processing instances (" + instances.length + ")");
         for (var j = 0; j < instances.length; j++) {
-          Helpers.clog("Instance overrides");
-          Helpers.clog(instances[j].overrides());
-          Helpers.clog(instances[j].overrides().count());
+          Helpers.clog("--- Processing instances - " + j);
+
+
+          if (instances[j].style() != null && instances[j].style().fills() != null && instances[j].style().fills().length >= 1) {
+            tintFills.push(instances[j].style().fills());
+            Helpers.clog("--- Adding " + instances[j].style().fills().length + " tintFills");
+          }
 
 
           if (instances[j].overrides() != null && instances[j].overrides().count() > 0) {
 
             for (var key in instances[j].overrides()) {
-              Helpers.clog("key is:" + key);
-              Helpers.clog(instances[j].overrides()[key]);
 
               if (key.localeCompare("symbolID") != 0) {
                 var defOverride = {
                   "key": key,
                   "value": instances[j].overrides()[key],
-                  "origin": "Instance"
+                  "origin": "Instance-" + instances[j].name()
                 };
 
                 if (!OverrideIsIncluded(defOverride, overrides)) {
@@ -284,41 +224,42 @@ export function GenerateHandoffArtboard(context) {
       }
 
       if (usedAsOverrides != null) {
-        for (var j = 0; j < usedAsOverrides.length; j++) {
-          Helpers.clog("UsedAsOverrides overrides");
+        Helpers.clog("-- Processing used-as-overrides (" + usedAsOverrides.length + ")");
 
+        for (var j = 0; j < usedAsOverrides.length; j++) {
+
+          Helpers.clog("--- Processing used-as-overrides tints - " + j);
+          if (usedAsOverrides[j].style() != null && usedAsOverrides[j].style().fills() != null && usedAsOverrides[j].style().fills().length >= 1) {
+            tintFills.push(usedAsOverrides[j].style().fills());
+            Helpers.clog("---- Adding extra" + usedAsOverrides[j].style().fills().length + " tintFills");
+          }
+
+          Helpers.clog("--- Processing used-as-overrides data - " + j);
           if (usedAsOverrides[j].overrides() != null && usedAsOverrides[j].overrides().count() > 0) {
 
-
-            Helpers.clog(usedAsOverrides[j].overrides());
+            Helpers.clog("--- Processing instance:" + usedAsOverrides[j].name() + " - Parent is:" + usedAsOverrides[j].parentGroup().name());
 
             for (var key in usedAsOverrides[j].overrides()) {
               var shouldAdd = true;
               for (var overrideKey in usedAsOverrides[j].overrides()[key]) {
                 if (overrideKey.localeCompare("symbolID") == 0) {
-                  Helpers.clog("==> Overrides  symbolID is: " + usedAsOverrides[j].overrides()[key][overrideKey]);
-                  Helpers.clog("==> Ref Master symbolID is: " + exportableLayers[i].symbolID());
-
+                
                   if (usedAsOverrides[j].overrides()[key][overrideKey].localeCompare(exportableLayers[i].symbolID()) != 0)
                     shouldAdd = false;
                 }
 
                 if (overrideKey.localeCompare("symbolID") != 0) {
                   if (shouldAdd) {
+                    if (OverrideBelongsToInstance(exportableLayers[i], overrideKey)) {
+                      var defOverride = {
+                        "key": overrideKey,
+                        "value": usedAsOverrides[j].overrides()[key][overrideKey],
+                        "origin": "SymbolOverride"
+                      };
 
-                    Helpers.clog(usedAsOverrides[j].overrides()[key][overrideKey]);
-                    Helpers.clog(" - Adding override element: parent key is:" + key);
-                    Helpers.clog(" - Adding override element: overrideKey:" + overrideKey);
-                    Helpers.clog(" - Adding override element: value:" + usedAsOverrides[j].overrides()[key][overrideKey]);
-                    Helpers.clog(" - Adding override element: value:" + usedAsOverrides[j].overrides()[key][overrideKey]);
-                    var defOverride = {
-                      "key": overrideKey,
-                      "value": usedAsOverrides[j].overrides()[key][overrideKey],
-                      "origin": "SymbolOverride"
-                    };
-
-                    if (!OverrideIsIncluded(defOverride, overrides)) {
-                      overrides.push(defOverride);
+                      if (!OverrideIsIncluded(defOverride, overrides)) {
+                        overrides.push(defOverride);
+                      }
                     }
                   }
                 }
@@ -328,11 +269,6 @@ export function GenerateHandoffArtboard(context) {
         }
       }
 
-      //overrides = CleanRedundantOverrides(overrides, exportableLayers[i]);
-
-
-      Helpers.clog("This is the final overrides list");
-      Helpers.clog(overrides);
 
       exportableSymbols.push({
         "symbol": exportableLayers[i],
@@ -340,16 +276,27 @@ export function GenerateHandoffArtboard(context) {
         "tintFills": tintFills,
         "overrides": overrides
       });
+
+      counterTotalAssets+= (1 + tintFills.length + overrides.length);
     }
   }
 
   CreateHandoffArtboard(context, exportableSymbols);
   AddHandoffInstances(context, exportableSymbols)
 
-  context.document.showMessage("Wooo, this is cool.");
+  context.document.showMessage("Hey ho! We created "+counterTotalAssets+" exportable assets for "+exportableLayers.length+" different symbols.");
 
 
 };
+
+function OverrideBelongsToInstance(instance, overrideKey) {
+  var belongsToThisElement = false;
+  for (var i = 0; i < instance.layers().length; i++) {
+    if (instance.layers()[i].objectID().localeCompare(overrideKey) == 0)
+      belongsToThisElement = true;
+  }
+  return belongsToThisElement;
+}
 
 export function onShutdown(webviewID) {
   const existingWebview = getWebview(webviewID)

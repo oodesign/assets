@@ -790,21 +790,27 @@ function getSymbolOverrides(context, symbolMaster) {
       // clog(overrides);
       // clog(instance.availableOverrides());
       var shouldAdd = false;
-      for (var kk = 0; kk < instance.availableOverrides().length; kk++) {
-        if (instance.availableOverrides()[kk].class() == "MSSymbolOverride") {
-          // clog("Override is MSSymbolOverride. CurrentValue Master is:" + instance.availableOverrides()[kk].currentValue());
-          // clog("Override is MSSymbolOverride. DefaultValue Master is:" + instance.availableOverrides()[kk].defaultValue());
-          // clog("Override is MSSymbolOverride. Its reference Master is:" + symbolMaster.symbolID());
+      for (var i = 0; i < instance.availableOverrides().length; i++) {
+        try {
+          if (instance.availableOverrides()[i].class() == "MSSymbolOverride") {
+            // clog("Override is MSSymbolOverride. CurrentValue Class is:" + instance.availableOverrides()[i].currentValue().class());
+            // clog("Override is MSSymbolOverride. CurrentValue Master is:" + instance.availableOverrides()[i].currentValue());
+            // clog("Override is MSSymbolOverride. DefaultValue Master is:" + instance.availableOverrides()[i].defaultValue());
+            // clog("Override is MSSymbolOverride. Its reference Master is:" + symbolMaster.symbolID());
 
-          if ((instance.availableOverrides()[kk].defaultValue().localeCompare(symbolMaster.symbolID()) == 0) || (instance.availableOverrides()[kk].currentValue().localeCompare(symbolMaster.symbolID()) == 0))
-          {
-            //clog("Found it's an override in symboloverride instance:" + instance.name());
-            shouldAdd = true;
+            if ((instance.availableOverrides()[i].defaultValue().localeCompare(symbolMaster.symbolID()) == 0) || (instance.availableOverrides()[i].currentValue().localeCompare(symbolMaster.symbolID()) == 0)) {
+              //clog("Found it's an override in symboloverride instance:" + instance.name());
+              shouldAdd = true;
+            }
           }
+        } catch (e) {
+          clog("Override is not directValue. Override CurrentValue Class is:" + instance.availableOverrides()[i].currentValue().class());
         }
       }
-      if (shouldAdd)
+      if (shouldAdd) {
         symbolOverrides.addObject(instance);
+        clog("Adding " + instance.name() + " from " + instance.parentArtboard().name() + " as symbolOverride");
+      }
       //FindOverrideSymbolID(instance, overrides, symbolOverrides, symbolMaster, 0);
     }
   }
