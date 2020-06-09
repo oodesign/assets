@@ -23,12 +23,24 @@
           "Shutdown": "onShutdown"
         }
       }
+    },
+    {
+      "script": "Main.js",
+      "name": "Show All Available Overrides",
+      "identifier": "showallavailableoverrides",
+      "handlers": {
+        "run": "ShowAvailableOverrides",
+        "actions": {
+          "Shutdown": "onShutdown"
+        }
+      }
     }
   ],
   "menu": {
     "title": "Assets",
     "items": [
-      "generatehandoffartboard"
+      "generatehandoffartboard",
+      "showallavailableoverrides"
     ]
   },
   "identifier" : "com.oodesign.sketch-assets",
