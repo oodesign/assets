@@ -8,14 +8,14 @@ var assetsArtboard;
 var assetsPageName = "Auto-generated assets";
 var assetsArtboardName = "Assets";
 
-var verticalDistance = 100;
 var offsetXFactor = 3;
+var offsetYFactor = 3;
 var initialXOffset = 200;
 var initialYOffset = 200;
 var nextXLocation = 0;
 var nextYLocation = 0;
 
-function AddToHandoffArtboard(instance, name, width, height) {
+function AddToHandoffArtboard(instance, name, width, height, exportOptions) {
   Helpers.clog("Adding to handoff artboard instance of '" + name + "' - X: " + nextXLocation + " Y: " + nextYLocation + " Width: " + width + " Height: " + height);
   instance.frame().setX(nextXLocation);
   instance.frame().setY(nextYLocation);
@@ -23,6 +23,7 @@ function AddToHandoffArtboard(instance, name, width, height) {
   instance.frame().setHeight(height);
 
   instance.setName(name);
+  instance.exportOptions = exportOptions;
 
   assetsArtboard.addLayer(instance);
 }
@@ -37,7 +38,13 @@ function GetOverridePointByLayerID(layerID, availableOverrides) {
 
 function CreateHandoffArtboard(context, exportableSymbols) {
   var artboardWidth = 1000;
-  var artboardHeight = (exportableSymbols.length * verticalDistance) + initialYOffset;
+  var artboardHeight = 100;
+
+  var neededSize = GetArtboardSize(context, exportableSymbols);
+  console.log("Artboard needed size is: [" +neededSize.x+","+neededSize.y+"]");
+
+  if(neededSize.x > artboardWidth) artboardWidth = neededSize.x;
+  if(neededSize.y > artboardHeight) artboardHeight = neededSize.y;
 
   assetsArtboard = MSArtboardGroup.new();
   assetsArtboard.frame().setX(0);
@@ -48,6 +55,10 @@ function CreateHandoffArtboard(context, exportableSymbols) {
 
   var layer = MSTextLayer.new();
   layer.stringValue = "This artboard is created automatically. Any change done may be overridden when running Sketch Assets";
+  layer.setFont(NSFont.fontWithName_size('Arial', 16));
+  //layer.setTextColor(NSColor.colorWithSRGBRed_green_blue_alpha(100, 100, 100, 1));
+  var msColor = MSImmutableColor.colorWithRed_green_blue_alpha(0.6, 0.6, 0.6, 1);
+  layer.setTextColor(msColor);
   layer.frame().setX(50);
   layer.frame().setY(50);
   assetsArtboard.addLayer(layer);
@@ -250,6 +261,7 @@ export function GenerateHandoffArtboard(context) {
     }
   }
 
+
   CreateHandoffArtboard(context, exportableSymbols);
   AddHandoffInstances(context, exportableSymbols)
 
@@ -257,6 +269,50 @@ export function GenerateHandoffArtboard(context) {
 
 
 };
+
+function GetArtboardSize(context, exportableSymbols) {
+
+  var neededSize = {
+    "x": 0,
+    "y": 0
+  };
+
+  var maxX = 0;
+
+  var anextXLocation = 0;
+  var anextYLocation = 0;
+
+  for (var i = 0; i < exportableSymbols.length; i++) {
+
+    var rowX = 0;
+    var rowHeight = 0;
+
+    anextXLocation += (exportableSymbols[i].symbol.frame().width() * offsetXFactor);
+    if (exportableSymbols[i].instancesWithTints != null) {
+      for (var j = 0; j < exportableSymbols[i].instancesWithTints.length; j++) {
+        anextXLocation += (exportableSymbols[i].symbol.frame().width() * offsetXFactor);
+      }
+    }
+
+    if (exportableSymbols[i].variants != null) {
+      for (var j = 0; j < exportableSymbols[i].variants.length; j++) {
+        anextXLocation += (exportableSymbols[i].symbol.frame().width() * offsetXFactor);
+      }
+    }
+
+    if (anextXLocation > maxX) maxX = anextXLocation;
+
+    anextXLocation = 0;
+
+    anextYLocation += exportableSymbols[i].symbol.frame().height() * offsetYFactor;
+  }
+
+  neededSize.x = maxX + (initialXOffset*2);
+  neededSize.y = anextYLocation + (initialYOffset*2);
+
+  return neededSize;
+
+}
 
 
 function AddHandoffInstances(context, exportableSymbols) {
@@ -267,7 +323,7 @@ function AddHandoffInstances(context, exportableSymbols) {
   for (var i = 0; i < exportableSymbols.length; i++) {
     Helpers.clog("-- Adding original instance");
     var originalInstance = exportableSymbols[i].symbol.newSymbolInstance();
-    AddToHandoffArtboard(originalInstance, exportableSymbols[i].symbol.name(), exportableSymbols[i].symbol.frame().width(), exportableSymbols[i].symbol.frame().height());
+    AddToHandoffArtboard(originalInstance, exportableSymbols[i].symbol.name(), exportableSymbols[i].symbol.frame().width(), exportableSymbols[i].symbol.frame().height(), exportableSymbols[i].originalExportOptions);
 
     nextXLocation += (exportableSymbols[i].symbol.frame().width() * offsetXFactor);
 
@@ -276,7 +332,7 @@ function AddHandoffInstances(context, exportableSymbols) {
       for (var j = 0; j < exportableSymbols[i].instancesWithTints.length; j++) {
         var tintFillInstance = exportableSymbols[i].symbol.newSymbolInstance();
         tintFillInstance.style().fills = exportableSymbols[i].instancesWithTints[j].style().fills();
-        AddToHandoffArtboard(tintFillInstance, exportableSymbols[i].symbol.name() + "-tint-" + j, exportableSymbols[i].symbol.frame().width(), exportableSymbols[i].symbol.frame().height());
+        AddToHandoffArtboard(tintFillInstance, exportableSymbols[i].symbol.name() + "-tint-" + j, exportableSymbols[i].symbol.frame().width(), exportableSymbols[i].symbol.frame().height(), exportableSymbols[i].originalExportOptions);
         nextXLocation += (exportableSymbols[i].symbol.frame().width() * offsetXFactor);
       }
     }
@@ -289,7 +345,7 @@ function AddHandoffInstances(context, exportableSymbols) {
 
 
         var overrideInstance = exportableSymbols[i].symbol.newSymbolInstance();
-        AddToHandoffArtboard(overrideInstance, exportableSymbols[i].symbol.name() + "-override-" + j, exportableSymbols[i].symbol.frame().width(), exportableSymbols[i].symbol.frame().height());
+        AddToHandoffArtboard(overrideInstance, exportableSymbols[i].symbol.name() + "-override-" + j, exportableSymbols[i].symbol.frame().width(), exportableSymbols[i].symbol.frame().height(), exportableSymbols[i].originalExportOptions);
 
         overrideInstance.setValue_forOverridePoint_(exportableSymbols[i].variants[j].currentValue(), GetOverridePointByLayerID(exportableSymbols[i].variants[j].overridePoint().layerID(), overrideInstance.availableOverrides()));
 
@@ -298,7 +354,7 @@ function AddHandoffInstances(context, exportableSymbols) {
     }
 
     nextXLocation = initialXOffset;
-    nextYLocation += verticalDistance;
+    nextYLocation += (exportableSymbols[i].symbol.frame().height() * offsetYFactor);
   }
 }
 
