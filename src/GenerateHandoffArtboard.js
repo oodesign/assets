@@ -10,7 +10,6 @@ var assetsArtboardName = "Assets";
 
 var offsetXFactor = 3;
 var verticalDistance = 100;
-var offsetYFactor = 3;
 var initialXOffset = 50;
 var initialYOffset = 200;
 var nextXLocation = 0;
@@ -49,7 +48,7 @@ function AddTitle(assetsArtboard) {
 
 
   var subtitle = MSTextLayer.new();
-  subtitle.stringValue = "This artboard is created automatically. Any change done may be overridden when running Sketch Assets";
+  subtitle.stringValue = "This artboard and page are created automatically. Any change done may be overridden when running Sketch Assets again.";
   subtitle.setFont(NSFont.fontWithName_size('Arial', 16));
   var msColor = MSImmutableColor.colorWithRed_green_blue_alpha(0.6, 0.6, 0.6, 1);
   subtitle.setTextColor(msColor);
@@ -63,7 +62,6 @@ function CreateHandoffArtboard(context, exportableSymbols) {
   var artboardHeight = 100;
 
   var neededSize = GetArtboardSize(context, exportableSymbols);
-  console.log("Artboard needed size is: [" + neededSize.x + "," + neededSize.y + "]");
 
   if (neededSize.x > artboardWidth) artboardWidth = neededSize.x;
   if (neededSize.y > artboardHeight) artboardHeight = neededSize.y;
@@ -117,7 +115,6 @@ export function ShowAvailableOverrides(context) {
     if (avOv.class() == "MSSymbolOverride") {
       Helpers.clog("-- Symbol override. DV:" + avOv.defaultValue());
       Helpers.clog("-- Symbol override. CV:" + avOv.currentValue());
-      Helpers.clog("-- Symbol override. CA:DDD005ED-9D03-4FCA-A12F-D1AD482E64D6");
     }
   }
 
@@ -144,30 +141,6 @@ function CompareVariants(variantA, variantB) {
   return (equalOv == processedVariants);
 }
 
-function GetUniqueVariants2(variants) {
-  var uniqueVariants = [];
-  var redundantObjects = [];
-
-  for (var i = 0; i < variants.length; i++) {
-    if ((i + 1) < variants.length) {
-      for (var j = (i + 1); j < variants.length; j++) {
-        if (redundantObjects.indexOf(j) < 0) {
-          var areEquals = CompareVariants(variants[i].relatedOverrides, variants[j].relatedOverrides);
-          if (areEquals)
-            redundantObjects.push(j);
-        }
-      }
-    }
-  }
-
-  for (var i = 0; i < variants.length; i++) {
-    if (redundantObjects.indexOf(i) < 0) {
-      uniqueVariants.push(variants[i]);
-    }
-  }
-
-  return uniqueVariants;
-}
 
 function GetUniqueVariants(styleOverrides) {
   var uniqueVariants = [];
@@ -230,9 +203,6 @@ export function GenerateHandoffArtboard(context) {
     var styleOverrides = [];
     var variants = [];
 
-    var instanceOverrideCounter = 0;
-    var symbolOverrideCounter = 0;
-
     if (exportableLayers[i].class() == "MSSymbolMaster") {
       Helpers.clog("");
       Helpers.clog("-- Processing symbol '" + exportableLayers[i].name() + "'");
@@ -273,7 +243,7 @@ export function GenerateHandoffArtboard(context) {
         "variants": variants
       });
 
-      counterTotalAssets += (1 + tintFills.length + variants.length);
+      counterTotalAssets += (1 + instancesWithTints.length + variants.length);
     }
   }
 
