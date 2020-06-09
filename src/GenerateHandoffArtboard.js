@@ -9,8 +9,9 @@ var assetsPageName = "Auto-generated assets";
 var assetsArtboardName = "Assets";
 
 var offsetXFactor = 3;
+var verticalDistance = 100;
 var offsetYFactor = 3;
-var initialXOffset = 200;
+var initialXOffset = 50;
 var initialYOffset = 200;
 var nextXLocation = 0;
 var nextYLocation = 0;
@@ -36,15 +37,36 @@ function GetOverridePointByLayerID(layerID, availableOverrides) {
   return null;
 }
 
+function AddTitle(assetsArtboard) {
+  var title = MSTextLayer.new();
+  title.stringValue = "Assets";
+  title.setFont(NSFont.fontWithName_size('Arial Bold', 25));
+  var msColor = MSImmutableColor.colorWithRed_green_blue_alpha(0.5, 0.5, 0.5, 1);
+  title.setTextColor(msColor);
+  title.frame().setX(initialXOffset);
+  title.frame().setY(50);
+  assetsArtboard.addLayer(title);
+
+
+  var subtitle = MSTextLayer.new();
+  subtitle.stringValue = "This artboard is created automatically. Any change done may be overridden when running Sketch Assets";
+  subtitle.setFont(NSFont.fontWithName_size('Arial', 16));
+  var msColor = MSImmutableColor.colorWithRed_green_blue_alpha(0.6, 0.6, 0.6, 1);
+  subtitle.setTextColor(msColor);
+  subtitle.frame().setX(initialXOffset);
+  subtitle.frame().setY(90);
+  assetsArtboard.addLayer(subtitle);
+}
+
 function CreateHandoffArtboard(context, exportableSymbols) {
   var artboardWidth = 1000;
   var artboardHeight = 100;
 
   var neededSize = GetArtboardSize(context, exportableSymbols);
-  console.log("Artboard needed size is: [" +neededSize.x+","+neededSize.y+"]");
+  console.log("Artboard needed size is: [" + neededSize.x + "," + neededSize.y + "]");
 
-  if(neededSize.x > artboardWidth) artboardWidth = neededSize.x;
-  if(neededSize.y > artboardHeight) artboardHeight = neededSize.y;
+  if (neededSize.x > artboardWidth) artboardWidth = neededSize.x;
+  if (neededSize.y > artboardHeight) artboardHeight = neededSize.y;
 
   assetsArtboard = MSArtboardGroup.new();
   assetsArtboard.frame().setX(0);
@@ -53,15 +75,9 @@ function CreateHandoffArtboard(context, exportableSymbols) {
   assetsArtboard.frame().setHeight(artboardHeight);
   assetsArtboard.setName(assetsArtboardName);
 
-  var layer = MSTextLayer.new();
-  layer.stringValue = "This artboard is created automatically. Any change done may be overridden when running Sketch Assets";
-  layer.setFont(NSFont.fontWithName_size('Arial', 16));
-  //layer.setTextColor(NSColor.colorWithSRGBRed_green_blue_alpha(100, 100, 100, 1));
-  var msColor = MSImmutableColor.colorWithRed_green_blue_alpha(0.6, 0.6, 0.6, 1);
-  layer.setTextColor(msColor);
-  layer.frame().setX(50);
-  layer.frame().setY(50);
-  assetsArtboard.addLayer(layer);
+  AddTitle(assetsArtboard);
+
+
   assetsPage.addLayer(assetsArtboard);
 
 }
@@ -304,11 +320,11 @@ function GetArtboardSize(context, exportableSymbols) {
 
     anextXLocation = 0;
 
-    anextYLocation += exportableSymbols[i].symbol.frame().height() * offsetYFactor;
+    anextYLocation += exportableSymbols[i].symbol.frame().height() + verticalDistance;
   }
 
-  neededSize.x = maxX + (initialXOffset*2);
-  neededSize.y = anextYLocation + (initialYOffset*2);
+  neededSize.x = maxX + (initialXOffset * 2);
+  neededSize.y = anextYLocation + (initialYOffset * 2);
 
   return neededSize;
 
@@ -354,7 +370,7 @@ function AddHandoffInstances(context, exportableSymbols) {
     }
 
     nextXLocation = initialXOffset;
-    nextYLocation += (exportableSymbols[i].symbol.frame().height() * offsetYFactor);
+    nextYLocation += (exportableSymbols[i].symbol.frame().height() + verticalDistance);
   }
 }
 
