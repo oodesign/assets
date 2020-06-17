@@ -188,14 +188,25 @@ export function GenerateHandoffArtboard(context) {
   RemoveExistingAssets(context);
 
   var exportableLayers = [];
+  var localExportableAssets=0;
+  var foreignExportableAssets=0;
+
   context.document.currentPage().exportableLayers();
   for (var i = 0; i < context.document.pages().count(); i++) {
     for (var j = 0; j < context.document.pages()[i].exportableLayers().length; j++) {
       exportableLayers.push(context.document.pages()[i].exportableLayers()[j]);
+      localExportableAssets++;
     }
   }
 
-  Helpers.clog("There are " + exportableLayers.length + " exportable elements in the whole document.");
+  for (var i = 0; i < context.document.documentData().foreignSymbols().length; i++) {
+    if(context.document.documentData().foreignSymbols()[i].symbolMaster().exportOptions().exportFormats().length > 0){
+      exportableLayers.push(context.document.documentData().foreignSymbols()[i].symbolMaster());
+      foreignExportableAssets++;
+    }
+  }
+
+  Helpers.clog("There are " + exportableLayers.length + " exportable elements in the document. "+localExportableAssets+" local, and "+foreignExportableAssets+" foreign.");
 
   var exportableSymbols = [];
   for (var i = 0; i < exportableLayers.length; i++) {
