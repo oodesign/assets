@@ -13,7 +13,6 @@ const valStatus = {
 
 const commands = {
   generatehandoffartboard: 'generatehandoffartboard',
-  showallavailableoverrides: 'showallavailableoverrides',
   editsettings: 'editsettings'
 }
 

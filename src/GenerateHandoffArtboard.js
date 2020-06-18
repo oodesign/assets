@@ -9,7 +9,7 @@ var assetsPageName = "Auto-generated assets";
 var assetsArtboardName = "Assets";
 
 var offsetXFactor = 3;
-var verticalDistance = 100;
+var verticalDistance = 50;
 var initialXOffset = 50;
 var initialYOffset = 200;
 var nextXLocation = 0;
@@ -28,33 +28,38 @@ function AddToHandoffArtboard(instance, name, width, height, exportOptions) {
   assetsArtboard.addLayer(instance);
 }
 
+function AddText(text, style, x, y, bottomMargin) {
+  var textLayer = MSTextLayer.new();
+  textLayer.stringValue = text;
+  var msColor;
+  switch (style) {
+    case 1:
+      textLayer.setFont(NSFont.fontWithName_size('Arial Bold', 30));
+      msColor = MSImmutableColor.colorWithRed_green_blue_alpha(0.4, 0.4, 0.4, 1);
+      break;
+    case 2:
+      textLayer.setFont(NSFont.fontWithName_size('Arial Bold', 22));
+      msColor = MSImmutableColor.colorWithRed_green_blue_alpha(0.6, 0.6, 0.6, 1);
+      break;
+    case 3:
+      textLayer.setFont(NSFont.fontWithName_size('Arial', 16));
+      msColor = MSImmutableColor.colorWithRed_green_blue_alpha(0.6, 0.6, 0.6, 1);
+      break;
+  }
+
+  textLayer.setTextColor(msColor);
+  textLayer.frame().setX(x);
+  textLayer.frame().setY(y);
+  assetsArtboard.addLayer(textLayer);
+  nextYLocation = y + bottomMargin;
+}
+
 function GetOverridePointByLayerID(layerID, availableOverrides) {
   for (var i = 0; i < availableOverrides.length; i++) {
     if (availableOverrides[i].overridePoint().layerID().localeCompare(layerID) == 0)
       return availableOverrides[i].overridePoint();
   }
   return null;
-}
-
-function AddTitle(assetsArtboard) {
-  var title = MSTextLayer.new();
-  title.stringValue = "Assets";
-  title.setFont(NSFont.fontWithName_size('Arial Bold', 25));
-  var msColor = MSImmutableColor.colorWithRed_green_blue_alpha(0.5, 0.5, 0.5, 1);
-  title.setTextColor(msColor);
-  title.frame().setX(initialXOffset);
-  title.frame().setY(50);
-  assetsArtboard.addLayer(title);
-
-
-  var subtitle = MSTextLayer.new();
-  subtitle.stringValue = "This artboard and page are created automatically. Any change done may be overridden when running Sketch Assets again.";
-  subtitle.setFont(NSFont.fontWithName_size('Arial', 16));
-  var msColor = MSImmutableColor.colorWithRed_green_blue_alpha(0.6, 0.6, 0.6, 1);
-  subtitle.setTextColor(msColor);
-  subtitle.frame().setX(initialXOffset);
-  subtitle.frame().setY(90);
-  assetsArtboard.addLayer(subtitle);
 }
 
 function CreateHandoffArtboard(context, exportableSymbols) {
@@ -73,8 +78,8 @@ function CreateHandoffArtboard(context, exportableSymbols) {
   assetsArtboard.frame().setHeight(artboardHeight);
   assetsArtboard.setName(assetsArtboardName);
 
-  AddTitle(assetsArtboard);
-
+  AddText("Assets", 1, initialXOffset, 50, 0);
+  AddText("This artboard and page are created automatically. Any change done may be overridden when running Sketch Assets again.", 3, initialXOffset, 90, 90);
 
   assetsPage.addLayer(assetsArtboard);
 
@@ -102,24 +107,6 @@ function RemoveExistingAssets(context) {
   for (var i = 0; i < removeArtboards.length; i++) {
     removeArtboards[i].removeFromParent();
   }
-}
-
-export function ShowAvailableOverrides(context) {
-  var element = context.selection[0];
-  Helpers.clog("RELATED OVERRIDES");
-  var allAvailableOverrides = Helpers.GetRelatedOverrides(element.availableOverrides(), "DDD005ED-9D03-4FCA-A12F-D1AD482E64D6", 0);
-  for (var i = 0; i < allAvailableOverrides.length; i++) {
-    var avOv = allAvailableOverrides[i];
-    Helpers.clog("- Override (" + avOv.class() + ") for element '" + avOv.overridePoint().layerName() + "'. HasOverride:" + avOv.hasOverride() + ". AffectedLayer:" + avOv.affectedLayer().name() + ". Master:" + avOv.master().name());
-    Helpers.clog(avOv);
-    if (avOv.class() == "MSSymbolOverride") {
-      Helpers.clog("-- Symbol override. DV:" + avOv.defaultValue());
-      Helpers.clog("-- Symbol override. CV:" + avOv.currentValue());
-    }
-  }
-
-  Helpers.clog("");
-  Helpers.clog("");
 }
 
 function CompareVariants(variantA, variantB) {
@@ -188,8 +175,9 @@ export function GenerateHandoffArtboard(context) {
   RemoveExistingAssets(context);
 
   var exportableLayers = [];
-  var localExportableAssets=0;
-  var foreignExportableAssets=0;
+  var foreignLayers = [];
+  var localExportableAssets = 0;
+  var foreignExportableAssets = 0;
 
   context.document.currentPage().exportableLayers();
   for (var i = 0; i < context.document.pages().count(); i++) {
@@ -200,13 +188,14 @@ export function GenerateHandoffArtboard(context) {
   }
 
   for (var i = 0; i < context.document.documentData().foreignSymbols().length; i++) {
-    if(context.document.documentData().foreignSymbols()[i].symbolMaster().exportOptions().exportFormats().length > 0){
+    if (context.document.documentData().foreignSymbols()[i].symbolMaster().exportOptions().exportFormats().length > 0) {
       exportableLayers.push(context.document.documentData().foreignSymbols()[i].symbolMaster());
+      foreignLayers.push(context.document.documentData().foreignSymbols()[i].symbolMaster());
       foreignExportableAssets++;
     }
   }
 
-  Helpers.clog("There are " + exportableLayers.length + " exportable elements in the document. "+localExportableAssets+" local, and "+foreignExportableAssets+" foreign.");
+  Helpers.clog("There are " + exportableLayers.length + " exportable elements in the document. " + localExportableAssets + " local, and " + foreignExportableAssets + " foreign.");
 
   var exportableSymbols = [];
   for (var i = 0; i < exportableLayers.length; i++) {
@@ -249,6 +238,7 @@ export function GenerateHandoffArtboard(context) {
 
       exportableSymbols.push({
         "symbol": exportableLayers[i],
+        "isForeign": (foreignLayers.indexOf(exportableLayers[i]) >= 0),
         "originalExportOptions": exportableLayers[i].exportOptions(),
         "instancesWithTints": instancesWithTints,
         "variants": variants
@@ -260,7 +250,7 @@ export function GenerateHandoffArtboard(context) {
 
 
   CreateHandoffArtboard(context, exportableSymbols);
-  AddHandoffInstances(context, exportableSymbols)
+  AddHandoffInstances(context, exportableSymbols, true);
 
   context.document.showMessage("Hey ho! We created " + counterTotalAssets + " exportable assets for " + exportableLayers.length + " different symbols.");
 
@@ -312,12 +302,44 @@ function GetArtboardSize(context, exportableSymbols) {
 }
 
 
-function AddHandoffInstances(context, exportableSymbols) {
+function AddHandoffInstances(context, exportableSymbols, addForeignSymbols) {
   Helpers.clog("Add Handoff Instances");
-  nextXLocation = initialXOffset;
-  nextYLocation = initialYOffset;
+
+  var localSymbols = exportableSymbols.filter(function (el) {
+    return el.isForeign == false
+  });
+
+  var foreignSymbols = exportableSymbols.filter(function (el) {
+    return el.isForeign == true
+  });
+
+
+  Helpers.clog("Adding local symbols assets.");
+  AddText("Local assets", 2, initialXOffset, nextYLocation, 70);
+  InsertAssets(localSymbols, initialXOffset, nextYLocation);
+
+
+  if (addForeignSymbols && foreignSymbols.length > 0) {
+    Helpers.clog("Adding foreign symbols assets.");
+    AddText("Foreign assets", 2, initialXOffset, nextYLocation, 70);
+    InsertAssets(foreignSymbols, initialXOffset, nextYLocation);
+  }
+  else {
+    Helpers.clog("Not adding foreign symbols (per configuration).");
+  }
+
+}
+
+function InsertAssets(exportableSymbols, xOffset, yOffset) {
+
+  nextXLocation = xOffset;
+  nextYLocation = yOffset;
 
   for (var i = 0; i < exportableSymbols.length; i++) {
+
+    Helpers.clog("-- Processing symbol:" + exportableSymbols[i].symbol.name());
+
+
     Helpers.clog("-- Adding original instance");
     var originalInstance = exportableSymbols[i].symbol.newSymbolInstance();
     AddToHandoffArtboard(originalInstance, exportableSymbols[i].symbol.name(), exportableSymbols[i].symbol.frame().width(), exportableSymbols[i].symbol.frame().height(), exportableSymbols[i].originalExportOptions);
@@ -337,22 +359,20 @@ function AddHandoffInstances(context, exportableSymbols) {
 
     if (exportableSymbols[i].variants != null) {
       Helpers.clog("-- Adding instances for overrides");
-
       for (var j = 0; j < exportableSymbols[i].variants.length; j++) {
-
-
         var overrideInstance = exportableSymbols[i].symbol.newSymbolInstance();
         AddToHandoffArtboard(overrideInstance, exportableSymbols[i].symbol.name() + "-override-" + j, exportableSymbols[i].symbol.frame().width(), exportableSymbols[i].symbol.frame().height(), exportableSymbols[i].originalExportOptions);
-
         overrideInstance.setValue_forOverridePoint_(exportableSymbols[i].variants[j].currentValue(), GetOverridePointByLayerID(exportableSymbols[i].variants[j].overridePoint().layerID(), overrideInstance.availableOverrides()));
-
         nextXLocation += (exportableSymbols[i].symbol.frame().width() * offsetXFactor);
       }
     }
 
-    nextXLocation = initialXOffset;
+    nextXLocation = yOffset;
     nextYLocation += (exportableSymbols[i].symbol.frame().height() + verticalDistance);
+    nextXLocation = xOffset;
   }
+
+
 }
 
 export function onShutdown(webviewID) {

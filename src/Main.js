@@ -20,13 +20,6 @@ export function GenerateHandoffArtboard(context) {
   onValidate(context);
 };
 
-export function ShowAvailableOverrides(context) {
-  globalCommand = Helpers.commands.showallavailableoverrides;
-  onValidate(context);
-};
-
-
-
 export function EditSettings(context) {
   globalCommand = Helpers.commands.editsettings;
   onValidate(context);
@@ -45,9 +38,6 @@ export function triggerMethod(context) {
   switch (globalCommand) {
     case Helpers.commands.generatehandoffartboard:
       GenerateHandoff.GenerateHandoffArtboard(context);
-      break;
-    case Helpers.commands.showallavailableoverrides:
-      GenerateHandoff.ShowAvailableOverrides(context);
       break;
     case Helpers.commands.editsettings:
       Settings.EditSettings(context);
