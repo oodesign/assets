@@ -28,7 +28,8 @@
   "menu": {
     "title": "Assets",
     "items": [
-      "generatehandoffartboard"
+      "generatehandoffartboard",
+      "editsettings"
     ]
   },
   "identifier" : "com.oodesign.sketch-assets",

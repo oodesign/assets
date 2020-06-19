@@ -109,26 +109,6 @@ function RemoveExistingAssets(context) {
   }
 }
 
-function CompareVariants(variantA, variantB) {
-
-  var equalOv = 0;
-  var processedVariants = 0;
-
-  for (var i = 0; i < variantA.length; i++) {
-    if (variantB[i] != null) {
-      if (
-        variantA[i].overridePoint().layerID().localeCompare(variantB[i].overridePoint().layerID()) == 0 &&
-        variantA[i].currentValue().localeCompare(variantB[i].currentValue()) == 0
-      ) {
-        equalOv++;
-      }
-      processedVariants++;
-    }
-  }
-  return (equalOv == processedVariants);
-}
-
-
 function GetUniqueVariants(styleOverrides) {
   var uniqueVariants = [];
   var allAvOverrides = [];
@@ -187,11 +167,13 @@ export function GenerateHandoffArtboard(context) {
     }
   }
 
-  for (var i = 0; i < context.document.documentData().foreignSymbols().length; i++) {
-    if (context.document.documentData().foreignSymbols()[i].symbolMaster().exportOptions().exportFormats().length > 0) {
-      exportableLayers.push(context.document.documentData().foreignSymbols()[i].symbolMaster());
-      foreignLayers.push(context.document.documentData().foreignSymbols()[i].symbolMaster());
-      foreignExportableAssets++;
+  if (Helpers.getLibrariesEnabled()) {
+    for (var i = 0; i < context.document.documentData().foreignSymbols().length; i++) {
+      if (context.document.documentData().foreignSymbols()[i].symbolMaster().exportOptions().exportFormats().length > 0) {
+        exportableLayers.push(context.document.documentData().foreignSymbols()[i].symbolMaster());
+        foreignLayers.push(context.document.documentData().foreignSymbols()[i].symbolMaster());
+        foreignExportableAssets++;
+      }
     }
   }
 
@@ -250,7 +232,7 @@ export function GenerateHandoffArtboard(context) {
 
 
   CreateHandoffArtboard(context, exportableSymbols);
-  AddHandoffInstances(context, exportableSymbols, true);
+  AddHandoffInstances(context, exportableSymbols, Helpers.getLibrariesEnabled());
 
   context.document.showMessage("Hey ho! We created " + counterTotalAssets + " exportable assets for " + exportableLayers.length + " different symbols.");
 
