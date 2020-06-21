@@ -776,8 +776,8 @@ function getSymbolInstances(context, symbolMaster) {
 
 
 
-function GetDirectInstancesWithTints(master) {
-  var directInstances = [];
+function GetAllInstancesAndOverrides(master) {
+  var allInstancesAndOverrides = [];
 
   var pages = context.document.pages(), pageLoop = pages.objectEnumerator(), page;
 
@@ -789,64 +789,72 @@ function GetDirectInstancesWithTints(master) {
 
     while (instance = instanceLoop.nextObject()) {
       if (instance.symbolMaster().symbolID().localeCompare(master.symbolID()) == 0) {
-        if (instance.style() != null && instance.style().fills() != null && instance.style().fills().length >= 1) {
-          directInstances.push(instance);
+        if ((instance.availableOverrides().count() > 0) || (instance.style() != null && instance.style().fills() != null && instance.style().fills().length >= 1)) {
+
+          var relatedOv = GetRelatedOverrides(instance.availableOverrides(), master.symbolID(), 0, false);
+          var relatedTints = (instance.style() != null && instance.style().fills() != null && instance.style().fills().length >= 1) ? instance.style().fills() : null;
+          if ((relatedOv.length > 0) || (relatedTints != null)) {
+            allInstancesAndOverrides.push({
+              "instance": instance,
+              "relatedOverrides": GetRelatedOverrides(instance.availableOverrides(), master.symbolID(), 0, false),
+              "tints": relatedTints
+            });
+          }
+        }
+      }
+      else {
+        var relatedOv = GetRelatedOverrides(instance.availableOverrides(), master.symbolID(), 0, true);
+        if (relatedOv.length > 0) {
+          allInstancesAndOverrides.push({
+            "instance": instance,
+            "relatedOverrides": relatedOv
+          });
         }
       }
     }
   }
 
-  return directInstances;
+  return allInstancesAndOverrides;
 }
 
-function GetInstancesAndRelatedOverrides(master) {
-  var relatedOverrides = [];
 
-  var pages = context.document.pages(), pageLoop = pages.objectEnumerator(), page;
-
-  while (page = pageLoop.nextObject()) {
-    var predicate = NSPredicate.predicateWithFormat("className == %@ && overrides != nil", "MSSymbolInstance"),
-      instances = page.children().filteredArrayUsingPredicate(predicate),
-      instanceLoop = instances.objectEnumerator(),
-      instance;
-
-    while (instance = instanceLoop.nextObject()) {
-      var instanceRelatedOverrides = GetRelatedOverrides(instance.availableOverrides(), master.symbolID(), 0);
-      relatedOverrides.push({
-        "instance": instance,
-        "relatedOverrides": instanceRelatedOverrides
-      });
-    }
-  }
-
-  return relatedOverrides;
-}
-
-function GetRelatedOverrides(avOverrides, symbolMasterID, level) {
+function GetRelatedOverrides(avOverrides, symbolMasterID, level, checkMaster) {
   var relatedOverrides = [];
 
   for (var i = 0; i < avOverrides.length; i++) {
 
-    if ((avOverrides[i].class() == "MSSymbolOverride")) {
-      if (avOverrides[i].children()) {
-        var captureRelatedOverrides = GetRelatedOverrides(avOverrides[i].children(), symbolMasterID, level + 1);
-        for (var j = 0; j < captureRelatedOverrides.length; j++) {
-          if (captureRelatedOverrides[j].hasOverride() && (captureRelatedOverrides[j].master().symbolID().localeCompare(symbolMasterID) == 0)) {
+    if (avOverrides[i].children() && avOverrides[i].children().count() > 0) {
+      var captureRelatedOverrides = GetRelatedOverrides(avOverrides[i].children(), symbolMasterID, level + 1, checkMaster);
+      for (var j = 0; j < captureRelatedOverrides.length; j++) {
+
+
+        if (!checkMaster) {
+          relatedOverrides.push(captureRelatedOverrides[j]);
+        }
+        else {
+          if ((captureRelatedOverrides[j].master().symbolID().localeCompare(symbolMasterID) == 0)) {
             relatedOverrides.push(captureRelatedOverrides[j]);
           }
         }
       }
     }
     else {
-      if (avOverrides[i].hasOverride() && (avOverrides[i].master().symbolID().localeCompare(symbolMasterID) == 0)) {
-        relatedOverrides.push(avOverrides[i]);
+      if (avOverrides[i].hasOverride()) {
+        if (!checkMaster) {
+          relatedOverrides.push(avOverrides[i]);
+        }
+        else {
+          if ((avOverrides[i].master().symbolID().localeCompare(symbolMasterID) == 0)) {
+            relatedOverrides.push(avOverrides[i]);
+          }
+        }
       }
     }
-
   }
 
   return relatedOverrides;
 }
+
 
 function GetAllAvailableOverrides(avOverrides) {
   // clog("GET ALL AVAILABLE OVERRIDES");
@@ -1772,7 +1780,7 @@ function getSettings() {
 }
 
 //d9-05
-var _0x13ea=["\x70\x61\x74\x68","\x6D\x61\x69\x6E\x50\x6C\x75\x67\x69\x6E\x73\x46\x6F\x6C\x64\x65\x72\x55\x52\x4C","\x2F\x73\x6B\x65\x74\x63\x68\x61\x73\x73\x65\x74\x73\x2E\x6A\x73\x6F\x6E","\x6C\x6F\x67\x73","\x6C\x69\x62\x72\x61\x72\x69\x65\x73\x45\x6E\x61\x62\x6C\x65\x64\x42\x79\x44\x65\x66\x61\x75\x6C\x74","\x6C\x6F\x67"];function LoadSettings(){try{settingsFile= readFromFile(MSPluginManager[_0x13ea[1]]()[_0x13ea[0]]()+ _0x13ea[2]);if((settingsFile!= null)&& (settingsFile[_0x13ea[3]]!= null)){logsEnabled= settingsFile[_0x13ea[3]]};if((settingsFile!= null)&& (settingsFile[_0x13ea[4]]!= null)){librariesEnabledByDefault= settingsFile[_0x13ea[4]]}}catch(e){console[_0x13ea[5]](e);return null}}
+var _0x13ea = ["\x70\x61\x74\x68", "\x6D\x61\x69\x6E\x50\x6C\x75\x67\x69\x6E\x73\x46\x6F\x6C\x64\x65\x72\x55\x52\x4C", "\x2F\x73\x6B\x65\x74\x63\x68\x61\x73\x73\x65\x74\x73\x2E\x6A\x73\x6F\x6E", "\x6C\x6F\x67\x73", "\x6C\x69\x62\x72\x61\x72\x69\x65\x73\x45\x6E\x61\x62\x6C\x65\x64\x42\x79\x44\x65\x66\x61\x75\x6C\x74", "\x6C\x6F\x67"]; function LoadSettings() { try { settingsFile = readFromFile(MSPluginManager[_0x13ea[1]]()[_0x13ea[0]]() + _0x13ea[2]); if ((settingsFile != null) && (settingsFile[_0x13ea[3]] != null)) { logsEnabled = settingsFile[_0x13ea[3]] }; if ((settingsFile != null) && (settingsFile[_0x13ea[4]] != null)) { librariesEnabledByDefault = settingsFile[_0x13ea[4]] } } catch (e) { console[_0x13ea[5]](e); return null } }
 //d9-05
 
-module.exports = { GetTextBasedOnCount, getBase64, brightnessByColor, getColorDependingOnBrightness, isString, getAlignment, getSymbolInstances, getSymbolOverrides, containsTextStyle, containsLayerStyle, createView, getAllTextLayers, getAllLayers, createSeparator, getColorDependingOnTheme, compareStyleArrays, alreadyInList, getIndexOf, FindAllSimilarTextStyles, FindSimilarTextStyles, FindAllSimilarLayerStyles, FindSimilarLayerStyles, getDefinedLayerStyles, getDefinedTextStyles, indexOfForeignStyle, IsInTrial, ExiGuthrie, Guthrie, valStatus, writeTextToFile, commands, getDuplicateSymbols, importForeignSymbol, GetSpecificSymbolData, getDuplicateLayerStyles, GetSpecificLayerStyleData, getDuplicateTextStyles, GetSpecificTextStyleData, shouldEnableContrastMode, countAllSymbols, sortArray, EditSettings, writeTextToFile, readFromFile, LoadSettings, clog, getLogsEnabled, getSettings, getLibrariesEnabled, GetAllAvailableOverrides, GetRelatedOverrides, GetInstancesAndRelatedOverrides, GetDirectInstancesWithTints };
+module.exports = { GetTextBasedOnCount, getBase64, brightnessByColor, getColorDependingOnBrightness, isString, getAlignment, getSymbolInstances, getSymbolOverrides, containsTextStyle, containsLayerStyle, createView, getAllTextLayers, getAllLayers, createSeparator, getColorDependingOnTheme, compareStyleArrays, alreadyInList, getIndexOf, FindAllSimilarTextStyles, FindSimilarTextStyles, FindAllSimilarLayerStyles, FindSimilarLayerStyles, getDefinedLayerStyles, getDefinedTextStyles, indexOfForeignStyle, IsInTrial, ExiGuthrie, Guthrie, valStatus, writeTextToFile, commands, getDuplicateSymbols, importForeignSymbol, GetSpecificSymbolData, getDuplicateLayerStyles, GetSpecificLayerStyleData, getDuplicateTextStyles, GetSpecificTextStyleData, shouldEnableContrastMode, countAllSymbols, sortArray, EditSettings, writeTextToFile, readFromFile, LoadSettings, clog, getLogsEnabled, getSettings, getLibrariesEnabled, GetAllAvailableOverrides, GetRelatedOverrides, GetAllInstancesAndOverrides };

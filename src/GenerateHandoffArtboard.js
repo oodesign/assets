@@ -1,5 +1,6 @@
 import BrowserWindow from 'sketch-module-web-view'
 import { getWebview } from 'sketch-module-web-view/remote'
+import { GetRelatedOverrides } from './Helpers';
 const Helpers = require("./Helpers");
 
 const webviewIdentifier = 'sketch-assets.webview'
@@ -109,6 +110,83 @@ function RemoveExistingAssets(context) {
   }
 }
 
+function CompareDirectInstances(instanceA, instanceB) {
+  var overrideMatches = 0;
+
+  for (var i = 0; i < instanceA.relatedOverrides.length; i++) {
+    for (var j = 0; j < instanceB.relatedOverrides.length; j++) {
+      if (
+        (instanceA.relatedOverrides[i].overridePoint().layerID().localeCompare(instanceB.relatedOverrides[j].overridePoint().layerID()) == 0) &&
+        (instanceA.relatedOverrides[i].currentValue().localeCompare(instanceB.relatedOverrides[j].currentValue()) == 0)
+      ) {
+        overrideMatches++;
+      }
+    }
+  }
+
+  return (overrideMatches == instanceA.relatedOverrides.length);
+}
+
+function EqualsToMaster(instance, master) {
+  var masterDefinition = {
+    "instance": master,
+    "relatedOverrides": GetRelatedOverrides(master.availableOverrides(), master.symbolID(), 0, false)
+  };
+  var areEquals = CompareDirectInstances(instance, masterDefinition);
+  return areEquals;
+}
+
+function GetDirectInstanceUniqueVariants(variants, master) {
+  var uniqueVariants = [];
+  var uniqueTints = [];
+
+  for (var i = 0; i < variants.length; i++) {
+
+
+    var alreadyExists = false;
+    for (var j = 0; j < uniqueVariants.length; j++) {
+      var comparison = CompareDirectInstances(variants[i], uniqueVariants[j]);
+      if (comparison) alreadyExists = true;
+    }
+
+
+    Helpers.clog("Variant '" + variants[i].instance.name() + "' doesn't appear yet in uniqueVariants.")
+
+    if (!alreadyExists) {
+      var shouldAdd = !EqualsToMaster(variants[i], master);
+
+
+      if (shouldAdd) {
+        Helpers.clog("Variant '" + variants[i].instance.name() + "' has overrides, and should be added.")
+        uniqueVariants.push(variants[i]);
+      }
+      else {
+        Helpers.clog("Variant '" + variants[i].instance.name() + "' doesn't have overrides, and should not be added.")
+      }
+    }
+
+  }
+
+  for (var i = 0; i < variants.length; i++) {
+    Helpers.clog("Processing tints")
+    if (variants[i].tints != null) {
+      for (var j = 0; j < variants[i].tints.length; j++) {
+        try {
+          Helpers.clog(variants[i].tints[j])
+          var tintColor = variants[i].tints[j].color().immutableModelObject().hexValue().toString();
+          if (uniqueTints.indexOf(tintColor) < 0) {
+            uniqueVariants.push(variants[i]);
+          }
+        } catch (e) {
+          Helpers.clog("Error processing tint color in getting unique variants.")
+        }
+      }
+    }
+  }
+
+  return uniqueVariants;
+}
+
 function GetUniqueVariants(styleOverrides) {
   var uniqueVariants = [];
   var allAvOverrides = [];
@@ -182,51 +260,26 @@ export function GenerateHandoffArtboard(context) {
   var exportableSymbols = [];
   for (var i = 0; i < exportableLayers.length; i++) {
     var tintFills = [];
-    var styleOverrides = [];
     var variants = [];
 
     if (exportableLayers[i].class() == "MSSymbolMaster") {
       Helpers.clog("");
       Helpers.clog("-- Processing symbol '" + exportableLayers[i].name() + "'");
 
-      var instancesWithTints = Helpers.GetDirectInstancesWithTints(exportableLayers[i]);
-      var indirectInstancesOverrides = Helpers.GetInstancesAndRelatedOverrides(exportableLayers[i]);
+      var allInstancesAndOverrides = Helpers.GetAllInstancesAndOverrides(exportableLayers[i]);
+      variants = GetDirectInstanceUniqueVariants(allInstancesAndOverrides, exportableLayers[i]);
 
-      Helpers.clog("-- Found " + indirectInstancesOverrides.length + " places where this symbol is used as override (or as part of symbol)");
-
-      if (indirectInstancesOverrides != null) {
-        for (var j = 0; j < indirectInstancesOverrides.length; j++) {
-          Helpers.clog("Processing indirectInstanceOverrides for instance '" + indirectInstancesOverrides[j].instance.name() + "', that has " + indirectInstancesOverrides[j].relatedOverrides.length + " related overrides.");
-          if (indirectInstancesOverrides[j].relatedOverrides.length > 0) {
-            styleOverrides.push(indirectInstancesOverrides[j]);
-          }
-
-          if (indirectInstancesOverrides[j].instance.symbolMaster().symbolID().localeCompare(exportableLayers[i].symbolID()) == 0) {
-            if (indirectInstancesOverrides[j].instance.style() != null && indirectInstancesOverrides[j].instance.style().fills() != null && indirectInstancesOverrides[j].instance.style().fills().length >= 1) {
-              if (instancesWithTints.indexOf(indirectInstancesOverrides[j].instance) < 0)
-                instancesWithTints.push(indirectInstancesOverrides[j].instance);
-            }
-          }
-        }
-      }
-
-      variants = GetUniqueVariants(styleOverrides);
-
-      Helpers.clog("");
-      Helpers.clog("Briefing for " + exportableLayers[i].name());
-      Helpers.clog("-- Found direct instances with tints:" + instancesWithTints.length);
-      Helpers.clog("-- Found variants:" + variants.length);
-      Helpers.clog("");
+      Helpers.clog("-- Briefing for " + exportableLayers[i].name() + ". Found variants(unique):" + variants.length + ". Variants(total):" + allInstancesAndOverrides.length);
 
       exportableSymbols.push({
         "symbol": exportableLayers[i],
         "isForeign": (foreignLayers.indexOf(exportableLayers[i]) >= 0),
         "originalExportOptions": exportableLayers[i].exportOptions(),
-        "instancesWithTints": instancesWithTints,
         "variants": variants
       });
 
-      counterTotalAssets += (1 + instancesWithTints.length + variants.length);
+      //counterTotalAssets += (1 + instancesWithTints.length + variants.length);
+
     }
   }
 
@@ -242,8 +295,8 @@ export function GenerateHandoffArtboard(context) {
 function GetArtboardSize(context, exportableSymbols) {
 
   var neededSize = {
-    "x": 0,
-    "y": 0
+    "x": 1000,
+    "y": 1000
   };
 
   var maxX = 0;
@@ -257,11 +310,11 @@ function GetArtboardSize(context, exportableSymbols) {
     var rowHeight = 0;
 
     anextXLocation += (exportableSymbols[i].symbol.frame().width() * offsetXFactor);
-    if (exportableSymbols[i].instancesWithTints != null) {
-      for (var j = 0; j < exportableSymbols[i].instancesWithTints.length; j++) {
-        anextXLocation += (exportableSymbols[i].symbol.frame().width() * offsetXFactor);
-      }
-    }
+    // if (exportableSymbols[i].instancesWithTints != null) {
+    //   for (var j = 0; j < exportableSymbols[i].instancesWithTints.length; j++) {
+    //     anextXLocation += (exportableSymbols[i].symbol.frame().width() * offsetXFactor);
+    //   }
+    // }
 
     if (exportableSymbols[i].variants != null) {
       for (var j = 0; j < exportableSymbols[i].variants.length; j++) {
@@ -328,23 +381,43 @@ function InsertAssets(exportableSymbols, xOffset, yOffset) {
 
     nextXLocation += (exportableSymbols[i].symbol.frame().width() * offsetXFactor);
 
-    if (exportableSymbols[i].instancesWithTints != null) {
-      Helpers.clog("-- Adding instances for tint fills");
-      for (var j = 0; j < exportableSymbols[i].instancesWithTints.length; j++) {
-        var tintFillInstance = exportableSymbols[i].symbol.newSymbolInstance();
-        tintFillInstance.style().fills = exportableSymbols[i].instancesWithTints[j].style().fills();
-        AddToHandoffArtboard(tintFillInstance, exportableSymbols[i].symbol.name() + "-tint-" + j, exportableSymbols[i].symbol.frame().width(), exportableSymbols[i].symbol.frame().height(), exportableSymbols[i].originalExportOptions);
-        nextXLocation += (exportableSymbols[i].symbol.frame().width() * offsetXFactor);
-      }
-    }
+    // if (exportableSymbols[i].directInstances != null) {
+    //   Helpers.clog("-- Adding instances for tint fills");
+    //   for (var j = 0; j < exportableSymbols[i].directInstances.length; j++) {
+    //     var directInstance = exportableSymbols[i].symbol.newSymbolInstance();
+    //     if (exportableSymbols[i].directInstances[j].tints != null)
+    //     {
+    //       Helpers.clog("--- Applying tint");
+    //       directInstance.style().fills = exportableSymbols[i].directInstances[j].tints;
+    //     }
+    //     else
+    //     {
+    //       Helpers.clog("--- No tints applied");
+    //     }
 
+
+    //     Helpers.clog("--- This are its availableOverrides");
+    //     Helpers.clog(exportableSymbols[i].directInstances[j].availableOverrides);
+
+
+
+    //     AddToHandoffArtboard(directInstance, exportableSymbols[i].symbol.name() + "-directInstance-" + j, exportableSymbols[i].symbol.frame().width(), exportableSymbols[i].symbol.frame().height(), exportableSymbols[i].originalExportOptions);
+    //     nextXLocation += (exportableSymbols[i].symbol.frame().width() * offsetXFactor);
+    //   }
+    // }
 
     if (exportableSymbols[i].variants != null) {
-      Helpers.clog("-- Adding instances for overrides");
+      Helpers.clog("-- Adding instances for variants");
       for (var j = 0; j < exportableSymbols[i].variants.length; j++) {
         var overrideInstance = exportableSymbols[i].symbol.newSymbolInstance();
-        AddToHandoffArtboard(overrideInstance, exportableSymbols[i].symbol.name() + "-override-" + j, exportableSymbols[i].symbol.frame().width(), exportableSymbols[i].symbol.frame().height(), exportableSymbols[i].originalExportOptions);
-        overrideInstance.setValue_forOverridePoint_(exportableSymbols[i].variants[j].currentValue(), GetOverridePointByLayerID(exportableSymbols[i].variants[j].overridePoint().layerID(), overrideInstance.availableOverrides()));
+        if (exportableSymbols[i].variants[j].tints != null) {
+          Helpers.clog("--- Applying tint");
+          overrideInstance.style().fills = exportableSymbols[i].variants[j].tints;
+        }
+        AddToHandoffArtboard(overrideInstance, exportableSymbols[i].symbol.name() + "-directInstance-" + j, exportableSymbols[i].symbol.frame().width(), exportableSymbols[i].symbol.frame().height(), exportableSymbols[i].originalExportOptions);
+        for (var k = 0; k < exportableSymbols[i].variants[j].relatedOverrides.length; k++) {
+          overrideInstance.setValue_forOverridePoint_(exportableSymbols[i].variants[j].relatedOverrides[k].currentValue(), GetOverridePointByLayerID(exportableSymbols[i].variants[j].relatedOverrides[k].overridePoint().layerID(), overrideInstance.availableOverrides()));
+        }
         nextXLocation += (exportableSymbols[i].symbol.frame().width() * offsetXFactor);
       }
     }
