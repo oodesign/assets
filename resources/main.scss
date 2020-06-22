@@ -1215,6 +1215,17 @@ $half: round($loops / 2);
   }
 }
 
+.progress-0{
+  .radial-inner-bg{
+    visibility: hidden;
+  }
+
+  &.item{
+    background:transparent;
+    border:none;
+  }
+}
+
 
 input, textarea {
   -webkit-user-select: auto;

@@ -80,7 +80,7 @@ function CreateHandoffArtboard(context, exportableSymbols) {
   assetsArtboard.setName(assetsArtboardName);
 
   AddText("Assets", 1, initialXOffset, 50, 0);
-  AddText("This artboard and page are created automatically. Any change done may be overridden when running Sketch Assets again.", 3, initialXOffset, 90, 90);
+  AddText("This artboard and page are created automatically. Any change done may be overridden when running Assets again.", 3, initialXOffset, 90, 90);
 
   assetsPage.addLayer(assetsArtboard);
 
@@ -187,47 +187,22 @@ function GetDirectInstanceUniqueVariants(variants, master) {
   return uniqueVariants;
 }
 
-function GetUniqueVariants(styleOverrides) {
-  var uniqueVariants = [];
-  var allAvOverrides = [];
-
-  for (var i = 0; i < styleOverrides.length; i++) {
-    for (var j = 0; j < styleOverrides[i].relatedOverrides.length; j++) {
-      allAvOverrides.push(styleOverrides[i].relatedOverrides[j]);
-    }
-  }
-
-  var redundantOverrides = [];
-
-  for (var i = 0; i < allAvOverrides.length; i++) {
-    if ((i + 1) < allAvOverrides.length) {
-      for (var j = (i + 1); j < allAvOverrides.length; j++) {
-        if (redundantOverrides.indexOf(j) < 0) {
-          if (
-            allAvOverrides[i].overridePoint().layerID().localeCompare(allAvOverrides[j].overridePoint().layerID()) == 0 &&
-            allAvOverrides[i].currentValue().localeCompare(allAvOverrides[j].currentValue()) == 0
-          ) {
-            redundantOverrides.push(j);
-          }
-        }
-      }
-    }
-  }
-
-  for (var i = 0; i < allAvOverrides.length; i++) {
-    if (redundantOverrides.indexOf(i) < 0) {
-      uniqueVariants.push(allAvOverrides[i]);
-    }
-  }
-
-  return uniqueVariants;
-}
-
 export function GenerateHandoffArtboard(context) {
 
-  var counterTotalAssets = 0;
-
   Helpers.clog("----- Generate Handoff Artboard -----");
+
+  const options = {
+    identifier: webviewIdentifier,
+    width: 400,
+    height: 400,
+    remembersWindowFrame: false,
+    show: false,
+    titleBarStyle: 'hidden'
+  }
+  const browserWindow = new BrowserWindow(options);
+  const webContents = browserWindow.webContents;
+
+  var counterTotalAssets = 0;
 
   EstablishAssetsPage(context);
   RemoveExistingAssets(context);
@@ -255,40 +230,74 @@ export function GenerateHandoffArtboard(context) {
     }
   }
 
+  browserWindow.loadURL(require('../resources/handoffassets.html'));
+  Helpers.clog("Webview called");
+
+
+  browserWindow.once('ready-to-show', () => {
+    browserWindow.show()
+  })
+
+  webContents.on('did-finish-load', () => {
+    Helpers.clog("Webview loaded");
+    webContents.executeJavaScript(`LaunchHandoff(${localExportableAssets},${foreignExportableAssets})`).catch(console.error);
+  });
+
+  webContents.on('nativeLog', s => {
+    Helpers.clog(s);
+  })
+
+
   Helpers.clog("There are " + exportableLayers.length + " exportable elements in the document. " + localExportableAssets + " local, and " + foreignExportableAssets + " foreign.");
 
-  var exportableSymbols = [];
-  for (var i = 0; i < exportableLayers.length; i++) {
-    var tintFills = [];
-    var variants = [];
 
-    if (exportableLayers[i].class() == "MSSymbolMaster") {
-      Helpers.clog("");
-      Helpers.clog("-- Processing symbol '" + exportableLayers[i].name() + "'");
 
-      var allInstancesAndOverrides = Helpers.GetAllInstancesAndOverrides(exportableLayers[i]);
-      variants = GetDirectInstanceUniqueVariants(allInstancesAndOverrides, exportableLayers[i]);
+  webContents.on('ExecuteGenerateHandoff', () => {
+    var exportableSymbols = [];
+    for (var i = 0; i < exportableLayers.length; i++) {
+      var variants = [];
 
-      Helpers.clog("-- Briefing for " + exportableLayers[i].name() + ". Found variants(unique):" + variants.length + ". Variants(total):" + allInstancesAndOverrides.length);
+      var progress = Math.floor((i * 100 / exportableLayers.length));
+      var message = "Genarating assets...";
 
-      exportableSymbols.push({
-        "symbol": exportableLayers[i],
-        "isForeign": (foreignLayers.indexOf(exportableLayers[i]) >= 0),
-        "originalExportOptions": exportableLayers[i].exportOptions(),
-        "variants": variants
-      });
+      if (exportableLayers.length > 30)
+        message = "We're generating assets...<br/>This may take a while... Wanna go get a coffee?"
 
-      //counterTotalAssets += (1 + instancesWithTints.length + variants.length);
+      webContents.executeJavaScript(`ShowProgress(${progress}, ${JSON.stringify(message)})`).catch(console.error);
 
+      if (exportableLayers[i].class() == "MSSymbolMaster") {
+        Helpers.clog("");
+        Helpers.clog("-- Processing symbol '" + exportableLayers[i].name() + "'");
+
+        var allInstancesAndOverrides = Helpers.GetAllInstancesAndOverrides(exportableLayers[i]);
+        variants = GetDirectInstanceUniqueVariants(allInstancesAndOverrides, exportableLayers[i]);
+
+        Helpers.clog("-- Briefing for " + exportableLayers[i].name() + ". Found variants(unique):" + variants.length + ". Variants(total):" + allInstancesAndOverrides.length);
+
+        exportableSymbols.push({
+          "symbol": exportableLayers[i],
+          "isForeign": (foreignLayers.indexOf(exportableLayers[i]) >= 0),
+          "originalExportOptions": exportableLayers[i].exportOptions(),
+          "variants": variants
+        });
+        counterTotalAssets += (1 + variants.length);
+      }
     }
-  }
+
+    CreateHandoffArtboard(context, exportableSymbols);
+    AddHandoffInstances(context, exportableSymbols, Helpers.getLibrariesEnabled());
+
+    if (counterTotalAssets == 0) {
+      context.document.showMessage("Looks like there are no symbols defined as exportable.");
+    }
+    else {
+      context.document.showMessage("Hey ho! We created " + counterTotalAssets + " exportable asset" + ((counterTotalAssets > 1) ? "s" : "") + " for " + exportableLayers.length + " symbol" + ((exportableLayers.length > 1) ? "s" : "") + ".");
+    }
 
 
-  CreateHandoffArtboard(context, exportableSymbols);
-  AddHandoffInstances(context, exportableSymbols, Helpers.getLibrariesEnabled());
-
-  context.document.showMessage("Hey ho! We created " + counterTotalAssets + " exportable assets for " + exportableLayers.length + " different symbols.");
-
+    webContents.executeJavaScript(`ShowProgress(100, "Done!")`).catch(console.error);
+    onShutdown(webviewIdentifier);
+  });
 
 };
 
@@ -306,15 +315,7 @@ function GetArtboardSize(context, exportableSymbols) {
 
   for (var i = 0; i < exportableSymbols.length; i++) {
 
-    var rowX = 0;
-    var rowHeight = 0;
-
     anextXLocation += (exportableSymbols[i].symbol.frame().width() * offsetXFactor);
-    // if (exportableSymbols[i].instancesWithTints != null) {
-    //   for (var j = 0; j < exportableSymbols[i].instancesWithTints.length; j++) {
-    //     anextXLocation += (exportableSymbols[i].symbol.frame().width() * offsetXFactor);
-    //   }
-    // }
 
     if (exportableSymbols[i].variants != null) {
       for (var j = 0; j < exportableSymbols[i].variants.length; j++) {
@@ -380,31 +381,6 @@ function InsertAssets(exportableSymbols, xOffset, yOffset) {
     AddToHandoffArtboard(originalInstance, exportableSymbols[i].symbol.name(), exportableSymbols[i].symbol.frame().width(), exportableSymbols[i].symbol.frame().height(), exportableSymbols[i].originalExportOptions);
 
     nextXLocation += (exportableSymbols[i].symbol.frame().width() * offsetXFactor);
-
-    // if (exportableSymbols[i].directInstances != null) {
-    //   Helpers.clog("-- Adding instances for tint fills");
-    //   for (var j = 0; j < exportableSymbols[i].directInstances.length; j++) {
-    //     var directInstance = exportableSymbols[i].symbol.newSymbolInstance();
-    //     if (exportableSymbols[i].directInstances[j].tints != null)
-    //     {
-    //       Helpers.clog("--- Applying tint");
-    //       directInstance.style().fills = exportableSymbols[i].directInstances[j].tints;
-    //     }
-    //     else
-    //     {
-    //       Helpers.clog("--- No tints applied");
-    //     }
-
-
-    //     Helpers.clog("--- This are its availableOverrides");
-    //     Helpers.clog(exportableSymbols[i].directInstances[j].availableOverrides);
-
-
-
-    //     AddToHandoffArtboard(directInstance, exportableSymbols[i].symbol.name() + "-directInstance-" + j, exportableSymbols[i].symbol.frame().width(), exportableSymbols[i].symbol.frame().height(), exportableSymbols[i].originalExportOptions);
-    //     nextXLocation += (exportableSymbols[i].symbol.frame().width() * offsetXFactor);
-    //   }
-    // }
 
     if (exportableSymbols[i].variants != null) {
       Helpers.clog("-- Adding instances for variants");

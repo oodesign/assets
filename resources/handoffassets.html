@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Styler</title>
+  <link rel="stylesheet" href="./main.css">
+</head>
+
+<body>
+  <div class="verticalLayout">
+
+    <div id="progressLayer" class="progressCircle">
+      <div class="verticalLayout alignFullCenter">
+        <div id="progressCircle" class="rowAuto alignFullCenter item progress-0">
+          <div class="radial-inner-bg"></div>
+        </div>
+        <div id="loadingMessage" class="secondaryText rowAuto"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="draggableArea alignFullCenter" data-app-region="drag"><span id="windowTitle">Assets</span></div>
+  </div>
+  <!-- notice the "../" here. It's because webview.js will be compiled in a different folder -->
+  <script src="../resources_handoffassets.js"></script>
+</body>
+
+</html>
